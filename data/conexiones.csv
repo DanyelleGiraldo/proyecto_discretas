@@ -1,0 +1,281 @@
+origen,destino,linea,distancia_km,tiempo_min
+Pinar de Chamartín,Bambú,1,0.871,2.24
+Bambú,Chamartín,1,0.616,1.73
+Chamartín,Plaza de Castilla,1,0.939,2.38
+Plaza de Castilla,Valdeacederas,1,0.601,1.7
+Valdeacederas,Tetuán,1,0.49,1.48
+Tetuán,Estrecho,1,0.802,2.1
+Estrecho,Alvarado,1,0.496,1.49
+Alvarado,Cuatro Caminos,1,0.434,1.37
+Cuatro Caminos,Ríos Rosas,1,0.545,1.59
+Ríos Rosas,Iglesia,1,0.739,1.98
+Iglesia,Bilbao,1,0.692,1.88
+Bilbao,Tribunal,1,0.328,1.16
+Tribunal,Gran Vía,1,0.707,1.91
+Gran Vía,Sol,1,0.366,1.23
+Sol,Tirso de Molina,1,0.511,1.52
+Tirso de Molina,Antón Martín,1,0.438,1.38
+Antón Martín,Estación del Arte,1,0.759,2.02
+Estación del Arte,Atocha,1,0.313,1.13
+Atocha,Menéndez Pelayo,1,0.694,1.89
+Menéndez Pelayo,Pacífico,1,0.614,1.73
+Pacífico,Puente de Vallecas,1,0.632,1.76
+Puente de Vallecas,Nueva Numancia,1,0.428,1.36
+Nueva Numancia,Portazgo,1,0.575,1.65
+Portazgo,Buenos Aires,1,0.473,1.45
+Buenos Aires,Alto del Arenal,1,0.707,1.91
+Alto del Arenal,Miguel Hernández,1,0.546,1.59
+Miguel Hernández,Sierra de Guadalupe,1,1.41,3.32
+Sierra de Guadalupe,Villa de Vallecas,1,0.465,1.43
+Villa de Vallecas,Congosto,1,0.837,2.17
+Congosto,La Gavia,1,0.615,1.73
+La Gavia,Las Suertes,1,1.302,3.1
+Las Suertes,Valdecarros,1,0.714,1.93
+Las Rosas,Avenida de Guadalajara,2,0.797,2.09
+Avenida de Guadalajara,Alsacia,2,1.092,2.68
+Alsacia,La Almudena,2,1.341,3.18
+La Almudena,La Elipa,2,1.04,2.58
+La Elipa,Ventas,2,1.295,3.09
+Ventas,Manuel Becerra,2,0.544,1.59
+Manuel Becerra,Goya,2,0.761,2.02
+Goya,Príncipe de Vergara,2,0.396,1.29
+Príncipe de Vergara,Retiro,2,0.557,1.61
+Retiro,Banco de España,2,0.737,1.97
+Banco de España,Sevilla,2,0.449,1.4
+Sevilla,Sol,2,0.308,1.12
+Sol,Ópera,2,0.531,1.56
+Ópera,Santo Domingo,2,0.361,1.22
+Santo Domingo,Noviciado,2,0.401,1.3
+Noviciado,San Bernardo,2,0.611,1.72
+San Bernardo,Quevedo,2,0.353,1.21
+Quevedo,Canal,2,0.664,1.83
+Canal,Cuatro Caminos,2,0.809,2.12
+Moncloa,Argüelles,3,0.504,1.51
+Argüelles,Ventura Rodríguez,3,0.505,1.51
+Ventura Rodríguez,Plaza de España,3,0.384,1.27
+Plaza de España,Callao,3,0.566,1.63
+Callao,Sol,3,0.427,1.35
+Sol,Lavapiés,3,0.964,2.43
+Lavapiés,Embajadores,3,0.406,1.31
+Embajadores,Palos de la Frontera,3,0.686,1.87
+Palos de la Frontera,Delicias,3,0.434,1.37
+Delicias,Legazpi,3,0.819,2.14
+Legazpi,Almendrales,3,0.894,2.29
+Almendrales,Hospital 12 de Octubre,3,0.983,2.47
+Hospital 12 de Octubre,San Fermín-Orcasur,3,0.624,1.75
+San Fermín-Orcasur,Ciudad de los Ángeles,3,1.092,2.68
+Ciudad de los Ángeles,Villaverde Bajo - Cruce,3,1.022,2.54
+Villaverde Bajo - Cruce,San Cristóbal,3,1.056,2.61
+San Cristóbal,Villaverde Alto,3,1.532,3.56
+Villaverde Alto,El Casar,3,2.501,5.5
+Pinar de Chamartín,Manoteras,4,0.523,1.55
+Manoteras,Hortaleza,4,0.913,2.33
+Hortaleza,Parque de Santa María,4,0.607,1.71
+Parque de Santa María,San Lorenzo,4,0.593,1.69
+San Lorenzo,Mar de Cristal,4,0.524,1.55
+Mar de Cristal,Canillas,4,0.735,1.97
+Canillas,Esperanza,4,0.999,2.5
+Esperanza,Arturo Soria,4,0.968,2.44
+Arturo Soria,Avenida de la Paz,4,0.649,1.8
+Avenida de la Paz,Alfonso XIII,4,0.661,1.82
+Alfonso XIII,Prosperidad,4,0.771,2.04
+Prosperidad,Avenida de América,4,0.734,1.97
+Avenida de América,Diego de León,4,0.651,1.8
+Diego de León,Lista,4,0.436,1.37
+Lista,Goya,4,0.544,1.59
+Goya,Velázquez,4,0.511,1.52
+Velázquez,Serrano,4,0.338,1.18
+Serrano,Colón,4,0.482,1.46
+Colón,Alonso Martínez,4,0.403,1.31
+Alonso Martínez,Bilbao,4,0.425,1.35
+Bilbao,San Bernardo,4,0.438,1.38
+San Bernardo,Argüelles,4,0.87,2.24
+Casa de Campo,Campamento,5,1.161,2.82
+Campamento,Empalme,5,0.5,1.5
+Empalme,Aluche,5,0.69,1.88
+Aluche,Eugenia de Montijo,5,0.825,2.15
+Eugenia de Montijo,Carabanchel,5,0.64,1.78
+Carabanchel,Vista Alegre,5,0.432,1.36
+Vista Alegre,Oporto,5,0.704,1.91
+Oporto,Urgel,5,0.692,1.88
+Urgel,Marqués de Vadillo,5,0.904,2.31
+Marqués de Vadillo,Pirámides,5,0.661,1.82
+Pirámides,Acacias,5,0.564,1.63
+Acacias,Puerta de Toledo,5,0.548,1.6
+Puerta de Toledo,La Latina,5,0.583,1.67
+La Latina,Ópera,5,0.702,1.9
+Ópera,Callao,5,0.401,1.3
+Callao,Gran Vía,5,0.369,1.24
+Gran Vía,Chueca,5,0.457,1.41
+Chueca,Alonso Martínez,5,0.581,1.66
+Alonso Martínez,Rubén Darío,5,0.796,2.09
+Rubén Darío,Núñez de Balboa,5,0.86,2.22
+Núñez de Balboa,Diego de León,5,0.472,1.44
+Diego de León,Ventas,5,0.895,2.29
+Ventas,El Carmen,5,0.656,1.81
+El Carmen,Quintana,5,0.692,1.88
+Quintana,Pueblo Nuevo,5,0.441,1.38
+Pueblo Nuevo,Ciudad Lineal,5,0.594,1.69
+Ciudad Lineal,Suanzes,5,0.965,2.43
+Suanzes,Torre Arias,5,0.891,2.28
+Torre Arias,Canillejas,5,0.946,2.39
+Canillejas,El Capricho,5,1.321,3.14
+El Capricho,Alameda de Osuna,5,0.684,1.87
+Laguna,Lucero,6,0.653,1.81
+Lucero,Alto de Extremadura,6,0.827,2.15
+Alto de Extremadura,Puerta del Ángel,6,1.039,2.58
+Puerta del Ángel,Príncipe Pío,6,1.001,2.5
+Príncipe Pío,Argüelles,6,1.131,2.76
+Argüelles,Moncloa,6,0.504,1.51
+Moncloa,Ciudad Universitaria,6,1.188,2.88
+Ciudad Universitaria,Vicente Aleixandre,6,0.632,1.76
+Vicente Aleixandre,Guzmán el Bueno,6,0.555,1.61
+Guzmán el Bueno,Cuatro Caminos,6,0.756,2.01
+Cuatro Caminos,Nuevos Ministerios,6,0.964,2.43
+Nuevos Ministerios,República Argentina,6,0.688,1.88
+República Argentina,Avenida de América,6,0.871,2.24
+Avenida de América,Diego de León,6,0.651,1.8
+Diego de León,Manuel Becerra,6,0.766,2.03
+Manuel Becerra,O'Donnell,6,0.613,1.73
+O'Donnell,Sainz de Baranda,6,0.818,2.14
+Sainz de Baranda,Conde de Casal,6,0.841,2.18
+Conde de Casal,Pacífico,6,0.754,2.01
+Pacífico,Méndez Álvaro,6,0.757,2.01
+Méndez Álvaro,Arganzuela-Planetario,6,0.773,2.05
+Arganzuela-Planetario,Legazpi,6,0.61,1.72
+Legazpi,Usera,6,0.996,2.49
+Usera,Plaza Elíptica,6,1.029,2.56
+Plaza Elíptica,Opañel,6,0.554,1.61
+Opañel,Oporto,6,0.75,2.0
+Oporto,Carpetana,6,0.916,2.33
+Carpetana,Laguna,6,0.774,2.05
+Pitis,Arroyofresno,7,0.53,1.56
+Arroyofresno,Lacoma,7,0.642,1.78
+Lacoma,Avenida de la Ilustración,7,0.687,1.87
+Avenida de la Ilustración,Peñagrande,7,0.504,1.51
+Peñagrande,Antonio Machado,7,0.653,1.81
+Antonio Machado,Valdezarza,7,0.592,1.68
+Valdezarza,Francos Rodríguez,7,0.998,2.5
+Francos Rodríguez,Guzmán el Bueno,7,1.116,2.73
+Guzmán el Bueno,Islas Filipinas,7,0.84,2.18
+Islas Filipinas,Canal,7,0.811,2.12
+Canal,Alonso Cano,7,0.438,1.38
+Alonso Cano,Gregorio Marañón,7,0.686,1.87
+Gregorio Marañón,Avenida de América,7,1.068,2.64
+Avenida de América,Cartagena,7,0.591,1.68
+Cartagena,Parque de las Avenidas,7,0.743,1.99
+Parque de las Avenidas,Barrio de la Concepción,7,0.878,2.26
+Barrio de la Concepción,Pueblo Nuevo,7,0.861,2.22
+Pueblo Nuevo,Ascao,7,0.656,1.81
+Ascao,García Noblejas,7,0.666,1.83
+García Noblejas,Simancas,7,0.845,2.19
+Simancas,San Blas,7,0.595,1.69
+San Blas,Las Musas,7,0.884,2.27
+Las Musas,Estadio Metropolitano,7,0.603,1.71
+Estadio Metropolitano,Barrio del Puerto,7,2.968,6.44
+Barrio del Puerto,Coslada Central,7,0.625,1.75
+Coslada Central,La Rambla,7,1.199,2.9
+La Rambla,San Fernando,7,1.014,2.53
+San Fernando,Jarama,7,0.909,2.32
+Jarama,Henares,7,0.66,1.82
+Henares,Hospital de Henares,7,0.639,1.78
+Nuevos Ministerios,Colombia,8,1.837,4.17
+Colombia,Pinar del Rey,8,2.668,5.84
+Pinar del Rey,Mar de Cristal,8,0.883,2.27
+Mar de Cristal,Feria de Madrid,8,2.06,4.62
+Feria de Madrid,Aeropuerto T1-T2-T3,8,3.727,7.95
+Aeropuerto T1-T2-T3,Barajas,8,1.354,3.21
+Barajas,Aeropuerto T4,8,1.988,4.48
+Paco de Lucía,Mirasierra,9,1.116,2.73
+Mirasierra,Herrera Oria,9,1.042,2.58
+Herrera Oria,Barrio del Pilar,9,0.921,2.34
+Barrio del Pilar,Ventilla,9,1.01,2.52
+Ventilla,Plaza de Castilla,9,0.737,1.97
+Plaza de Castilla,Duque de Pastrana,9,0.677,1.85
+Duque de Pastrana,Pío XII,9,0.721,1.94
+Pío XII,Colombia,9,0.506,1.51
+Colombia,Concha Espina,9,0.665,1.83
+Concha Espina,Cruz del Rayo,9,0.75,2.0
+Cruz del Rayo,Avenida de América,9,0.746,1.99
+Avenida de América,Núñez de Balboa,9,0.587,1.67
+Núñez de Balboa,Príncipe de Vergara,9,1.12,2.74
+Príncipe de Vergara,Ibiza,9,0.481,1.46
+Ibiza,Sainz de Baranda,9,0.908,2.32
+Sainz de Baranda,Estrella,9,0.794,2.09
+Estrella,Vinateros,9,0.756,2.01
+Vinateros,Artilleros,9,1.064,2.63
+Artilleros,Pavones,9,0.768,2.04
+Pavones,Valdebernardo,9,1.157,2.81
+Valdebernardo,Vicálvaro,9,1.169,2.84
+Vicálvaro,San Cipriano,9,0.46,1.42
+San Cipriano,Puerta de Arganda,9,0.735,1.97
+Puerta de Arganda,Rivas Urbanizaciones,9,5.564,11.63
+Rivas Urbanizaciones,Rivas Futura,9,3.418,7.34
+Rivas Futura,Rivas Vaciamadrid,9,1.561,3.62
+Rivas Vaciamadrid,La Poveda,9,3.753,8.01
+La Poveda,Arganda del Rey,9,3.088,6.68
+Hospital Infanta Sofía,Reyes Católicos,10,1.457,3.41
+Reyes Católicos,Baunatal,10,1.054,2.61
+Baunatal,Manuel de Falla,10,1.068,2.64
+Manuel de Falla,Marqués de la Valdavia,10,1.314,3.13
+Marqués de la Valdavia,La Moraleja,10,1.013,2.53
+La Moraleja,La Granja,10,1.995,4.49
+La Granja,Ronda de la Comunicación,10,1.402,3.3
+Ronda de la Comunicación,Las Tablas,10,0.94,2.38
+Las Tablas,Montecarmelo,10,2.291,5.08
+Montecarmelo,Tres Olivos,10,0.557,1.61
+Tres Olivos,Fuencarral,10,0.663,1.83
+Fuencarral,Begoña,10,1.454,3.41
+Begoña,Chamartín,10,1.026,2.55
+Chamartín,Plaza de Castilla,10,0.939,2.38
+Plaza de Castilla,Cuzco,10,0.816,2.13
+Cuzco,Santiago Bernabéu,10,0.798,2.1
+Santiago Bernabéu,Nuevos Ministerios,10,0.755,2.01
+Nuevos Ministerios,Gregorio Marañón,10,0.879,2.26
+Gregorio Marañón,Alonso Martínez,10,1.188,2.88
+Alonso Martínez,Tribunal,10,0.429,1.36
+Tribunal,Plaza de España,10,0.872,2.24
+Plaza de España,Príncipe Pío,10,0.822,2.14
+Príncipe Pío,Lago,10,1.404,3.31
+Lago,Batán,10,1.807,4.11
+Batán,Casa de Campo,10,0.815,2.13
+Casa de Campo,Colonia Jardín,10,1.391,3.28
+Colonia Jardín,Aviación Española,10,1.66,3.82
+Aviación Española,Cuatro Vientos,10,1.017,2.53
+Cuatro Vientos,Joaquín Vilumbrales,10,3.307,7.11
+Joaquín Vilumbrales,Puerta del Sur,10,0.639,1.78
+Plaza Elíptica,Abrantes,11,1.023,2.55
+Abrantes,Pan Bendito,11,0.75,2.0
+Pan Bendito,San Francisco,11,0.552,1.6
+San Francisco,Carabanchel Alto,11,1.049,2.6
+Carabanchel Alto,La Peseta,11,1.075,2.65
+La Peseta,La Fortuna,11,1.812,4.12
+Puerta del Sur,San Nicasio,12,3.134,6.77
+San Nicasio,Leganés Central,12,1.03,2.56
+Leganés Central,Hospital Severo Ochoa,12,0.798,2.1
+Hospital Severo Ochoa,Casa del Reloj,12,0.89,2.28
+Casa del Reloj,Julián Besteiro,12,1.071,2.64
+Julián Besteiro,El Carrascal,12,1.033,2.57
+El Carrascal,El Bercial,12,1.214,2.93
+El Bercial,Los Espartales,12,1.124,2.75
+Los Espartales,El Casar,12,0.966,2.43
+El Casar,Juan de la Cierva,12,1.289,3.08
+Juan de la Cierva,Getafe Central,12,1.027,2.55
+Getafe Central,Alonso de Mendoza,12,1.118,2.74
+Alonso de Mendoza,Conservatorio,12,1.14,2.78
+Conservatorio,Arroyo Culebro,12,0.999,2.5
+Arroyo Culebro,Parque de los Estados,12,2.588,5.68
+Parque de los Estados,Fuenlabrada Central,12,1.065,2.63
+Fuenlabrada Central,Parque Europa,12,0.843,2.19
+Parque Europa,Hospital de Fuenlabrada,12,0.714,1.93
+Hospital de Fuenlabrada,Loranca,12,2.149,4.8
+Loranca,Manuela Malasaña,12,2.704,5.91
+Manuela Malasaña,Hospital de Móstoles,12,1.187,2.87
+Hospital de Móstoles,Pradillo,12,1.07,2.64
+Pradillo,Móstoles Central,12,0.759,2.02
+Móstoles Central,Universidad Rey Juan Carlos,12,0.984,2.47
+Universidad Rey Juan Carlos,Parque Oeste,12,2.312,5.12
+Parque Oeste,Alcorcón Central,12,1.557,3.61
+Alcorcón Central,Parque Lisboa,12,0.917,2.33
+Parque Lisboa,Puerta del Sur,12,0.883,2.27
+Ópera,Príncipe Pío,R,0.9,2.3
