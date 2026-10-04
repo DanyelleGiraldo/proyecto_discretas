@@ -5,7 +5,8 @@ Componente de Inteligencia Artificial.
 2. ModeloTiempoViaje: regresión (Lineal vs Bosque Aleatorio) que estima el tiempo de viaje
    entre dos estaciones sin ejecutar la búsqueda en el grafo.
 3. ClasificadorCriticidad: Bosque Aleatorio que identifica estaciones críticas (alta
-   intermediación) usando solo información local de cada estación.
+   intermediación) con características baratas de calcular, O(V + E), en lugar de la
+   intermediación exacta, que cuesta O(V·E) (algoritmo de Brandes).
 """
 from typing import Dict
 
@@ -33,8 +34,9 @@ def tiempos_todos_pares(G: nx.Graph, GL: nx.Graph) -> Dict[str, Dict[str, float]
     Para cada origen se lanza un Dijkstra multi-fuente desde todos sus vértices (estación, línea).
     """
     tiempos = {}
-    for origen, datos in G.nodes(data=True):
-        fuentes = [(origen, l) for l in datos["lineas"]]
+    servicios_en = GL.graph["servicios_en"]
+    for origen in G.nodes:
+        fuentes = [(origen, s) for s in servicios_en[origen]]
         dist = nx.multi_source_dijkstra_path_length(GL, fuentes, weight="tiempo")
         mejor = {}
         for (estacion, _), t in dist.items():
@@ -125,8 +127,9 @@ class ModeloTiempoViaje:
 class ClasificadorCriticidad:
     """
     Etiqueta 'crítica' = estación en el percentil superior de centralidad de intermediación.
-    El modelo aprende a reconocerlas con características baratas de calcular (locales),
-    lo que sirve para priorizar estaciones en redes nuevas o modificadas.
+    El modelo aprende a reconocerlas con características baratas de calcular: locales (grado,
+    líneas, vecinos), geográficas (distancia al centro) y una estructural de costo O(V + E)
+    (punto de articulación, por DFS). Sirve para priorizar estaciones en redes grandes o modificadas.
     """
 
     def __init__(self, G: nx.Graph, percentil: float = 0.85):

@@ -42,7 +42,8 @@
         "La Gavia",
         "Las Suertes",
         "Valdecarros"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "2",
@@ -70,7 +71,8 @@
         "Quevedo",
         "Canal",
         "Cuatro Caminos"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "3",
@@ -97,7 +99,8 @@
         "San Cristóbal",
         "Villaverde Alto",
         "El Casar"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "4",
@@ -128,7 +131,8 @@
         "Bilbao",
         "San Bernardo",
         "Argüelles"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "5",
@@ -168,7 +172,8 @@
         "Canillejas",
         "El Capricho",
         "Alameda de Osuna"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "6",
@@ -204,7 +209,8 @@
         "Opañel",
         "Oporto",
         "Carpetana"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "7",
@@ -243,7 +249,8 @@
         "Jarama",
         "Henares",
         "Hospital de Henares"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "8",
@@ -259,7 +266,8 @@
         "Aeropuerto T1-T2-T3",
         "Barajas",
         "Aeropuerto T4"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "9",
@@ -296,7 +304,8 @@
         "Rivas Vaciamadrid",
         "La Poveda",
         "Arganda del Rey"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "10",
@@ -335,7 +344,45 @@
         "Cuatro Vientos",
         "Joaquín Vilumbrales",
         "Puerta del Sur"
-      ]
+      ],
+      "servicios": {
+        "10A": [
+          "Tres Olivos",
+          "Fuencarral",
+          "Begoña",
+          "Chamartín",
+          "Plaza de Castilla",
+          "Cuzco",
+          "Santiago Bernabéu",
+          "Nuevos Ministerios",
+          "Gregorio Marañón",
+          "Alonso Martínez",
+          "Tribunal",
+          "Plaza de España",
+          "Príncipe Pío",
+          "Lago",
+          "Batán",
+          "Casa de Campo",
+          "Colonia Jardín",
+          "Aviación Española",
+          "Cuatro Vientos",
+          "Joaquín Vilumbrales",
+          "Puerta del Sur"
+        ],
+        "10B": [
+          "Hospital Infanta Sofía",
+          "Reyes Católicos",
+          "Baunatal",
+          "Manuel de Falla",
+          "Marqués de la Valdavia",
+          "La Moraleja",
+          "La Granja",
+          "Ronda de la Comunicación",
+          "Las Tablas",
+          "Montecarmelo",
+          "Tres Olivos"
+        ]
+      }
     },
     {
       "codigo": "11",
@@ -350,7 +397,8 @@
         "Carabanchel Alto",
         "La Peseta",
         "La Fortuna"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "12",
@@ -386,7 +434,8 @@
         "Parque Oeste",
         "Alcorcón Central",
         "Parque Lisboa"
-      ]
+      ],
+      "servicios": {}
     },
     {
       "codigo": "R",
@@ -396,7 +445,8 @@
       "estaciones": [
         "Ópera",
         "Príncipe Pío"
-      ]
+      ],
+      "servicios": {}
     }
   ],
   "estaciones": [
@@ -2385,5 +2435,15 @@
         "R"
       ]
     }
+  ],
+  "pasillos": [
+    [
+      "Noviciado",
+      "Plaza de España"
+    ],
+    [
+      "Embajadores",
+      "Acacias"
+    ]
   ]
 }

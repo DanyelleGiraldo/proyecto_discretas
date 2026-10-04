@@ -6,5 +6,7 @@ scikit-learn
 matplotlib
 plotly
 folium
+jinja2
 jupyter
 nbformat
+pytest

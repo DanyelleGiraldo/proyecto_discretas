@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metro de Madrid · Teoría de grafos</title>
+<style>{{ leaflet_css }}</style>
+<style>
+:root {
+  --fondo: #F6F7FB; --tarjeta: #FFFFFF; --texto: #1E2433; --suave: #5B6478; --borde: #E3E7EF;
+  --acento: #2563EB; --acento-suave: #E8F0FE; --rojo: #DC2626; --verde: #16A34A; --naranja: #EA580C;
+  --radio: 14px; --sombra: 0 1px 2px rgba(16,24,40,.05), 0 4px 16px rgba(16,24,40,.06);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font: 15px/1.6 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--acento); }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .6em; }
+h2 { font-size: 1.55rem; }
+h3 { font-size: 1.1rem; margin-top: 1.4em; }
+p { margin: .5em 0 1em; }
+code, .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+.formula { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 1.1em; background: var(--acento-suave);
+  padding: .6em 1em; border-radius: 10px; display: block; margin: .8em 0; overflow-x: auto; }
+
+header.hero { background: linear-gradient(135deg, #0F1E45 0%, #1D3A8A 55%, #2563EB 100%); color: #fff; padding: 48px 16px 36px; }
+.hero .contenido { max-width: 1240px; margin: 0 auto; }
+.hero .etiqueta { opacity: .8; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; }
+.hero h1 { font-size: clamp(1.6rem, 3.6vw, 2.5rem); margin: .3em 0 .3em; max-width: 900px; }
+.hero p { opacity: .9; max-width: 820px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 24px; }
+.kpi { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 12px 14px; }
+.kpi b { display: block; font-size: 1.6rem; line-height: 1.2; }
+.kpi span { font-size: .8rem; opacity: .85; }
+
+nav.indice { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--borde); }
+nav.indice .contenido { max-width: 1240px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; padding: 8px 16px; scrollbar-width: thin; }
+nav.indice a { white-space: nowrap; text-decoration: none; color: var(--suave); padding: 6px 10px; border-radius: 8px; font-size: .88rem; }
+nav.indice a:hover, nav.indice a.activo { background: var(--acento-suave); color: var(--acento); }
+
+main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 60px; }
+section.bloque { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 28px clamp(16px, 3vw, 32px); margin-bottom: 24px; }
+.numero { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px;
+  background: var(--acento); color: #fff; font-size: .9rem; margin-right: 8px; vertical-align: 3px; }
+.pregunta { color: var(--suave); font-style: italic; margin-top: -.3em; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; }
+.grid-mapa { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); gap: 20px; }
+.grid-mapa > *, .grid2 > *, .grid3 > * { min-width: 0; }
+@media (max-width: 900px) { .grid-mapa { grid-template-columns: minmax(0, 1fr); } }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.caja { border: 1px solid var(--borde); border-radius: 12px; padding: 14px 16px; background: #FBFCFE; }
+.caja h4 { margin: 0 0 .4em; font-size: .95rem; }
+.nota { border-left: 4px solid var(--acento); background: var(--acento-suave); padding: 10px 14px; border-radius: 0 10px 10px 0; margin: 1em 0; }
+.nota.alerta { border-color: var(--naranja); background: #FFF4EC; }
+.nota.ok { border-color: var(--verde); background: #ECFDF3; }
+.cifra { font-weight: 700; color: var(--acento); }
+
+.tabla-envoltura { overflow-x: auto; margin: .6em 0 1em; }
+table.tabla { border-collapse: collapse; width: 100%; font-size: .88rem; }
+table.tabla th, table.tabla td { padding: 7px 10px; border-bottom: 1px solid var(--borde); text-align: left; vertical-align: top; }
+table.tabla thead th { background: #F1F4F9; font-weight: 600; position: sticky; top: 0; }
+table.tabla tbody tr:hover { background: #F8FAFD; }
+pre { background: #0F172A; color: #E2E8F0; padding: 14px; border-radius: 10px; overflow-x: auto; font-size: .82rem; }
+
+.mapa { height: 560px; border-radius: 12px; border: 1px solid var(--borde); z-index: 1; }
+.mapa.bajo { height: 460px; }
+.panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 12px; }
+.panel label { display: flex; flex-direction: column; font-size: .8rem; color: var(--suave); gap: 4px; }
+input[type=text], select { font: inherit; padding: 9px 12px; border: 1px solid var(--borde); border-radius: 10px; min-width: 220px; background: #fff; }
+button { font: inherit; border: 1px solid var(--borde); background: #fff; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+button:hover { border-color: var(--acento); color: var(--acento); }
+button.primario { background: var(--acento); color: #fff; border-color: var(--acento); }
+button.primario:hover { background: #1D4ED8; color: #fff; }
+.segmentado { display: inline-flex; border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+.segmentado button { border: 0; border-radius: 0; border-right: 1px solid var(--borde); }
+.segmentado button:last-child { border-right: 0; }
+.segmentado button.activo { background: var(--acento); color: #fff; }
+
+.itinerario { list-style: none; padding: 0; margin: 0; }
+.itinerario li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed var(--borde); }
+.insignia { display: inline-flex; min-width: 40px; justify-content: center; padding: 2px 8px; border-radius: 6px; color: #fff; font-weight: 700; font-size: .82rem; }
+.resumen-ruta { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 10px 0; }
+.resumen-ruta div { background: var(--acento-suave); border-radius: 10px; padding: 8px 10px; }
+.resumen-ruta b { display: block; font-size: 1.25rem; color: var(--acento); }
+.resumen-ruta span { font-size: .78rem; color: var(--suave); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip { background: #F1F4F9; border: 1px solid var(--borde); padding: 3px 10px; border-radius: 999px; font-size: .82rem; }
+.chip.rojo { background: #FEECEC; border-color: #FBC9C9; color: #9F1D1D; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--suave); margin: 8px 0; }
+.leyenda i { display: inline-block; width: 18px; height: 5px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+.leyenda i.punto { width: 11px; height: 11px; border-radius: 50%; }
+.grafico { min-height: 300px; }
+.popup b { font-size: 1rem; }
+.popup .botones { display: flex; gap: 6px; margin-top: 8px; }
+.popup button { padding: 4px 8px; font-size: .8rem; }
+footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20px 16px 40px; }
+@media (max-width: 640px) { .mapa { height: 420px; } input[type=text], select { min-width: 0; width: 100%; } .panel label { width: 100%; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="contenido">
+    <div class="etiqueta">Proyecto de Aula 2026-2 · Algoritmos y Programación · Matemáticas Discretas</div>
+    <h1>Modelado y análisis de la red del Metro de Madrid mediante teoría de grafos</h1>
+    <p>Las 13 líneas del metro como un grafo de {{ r.resumen.vertices }} estaciones: rutas óptimas, centralidad, robustez,
+       optimización combinatoria e inteligencia artificial, implementados en Python.</p>
+    <div class="kpis">
+      <div class="kpi"><b>{{ r.resumen.vertices }}</b><span>estaciones (vértices)</span></div>
+      <div class="kpi"><b>{{ r.resumen.aristas }}</b><span>conexiones (aristas)</span></div>
+      <div class="kpi"><b>{{ r.resumen.estaciones_transbordo }}</b><span>estaciones de transbordo</span></div>
+      <div class="kpi"><b>{{ r.globales.diametro_paradas }}</b><span>paradas de diámetro</span></div>
+      <div class="kpi"><b>{{ r.articulacion|length }}</b><span>puntos únicos de fallo</span></div>
+      <div class="kpi"><b>−{{ r.validacion.ahorro_a_estrella }}%</b><span>nodos explorados con A*</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="indice"><div class="contenido">
+  <a href="#metodologia">Metodología</a>
+  <a href="#estructura">1 · Estructura</a>
+  <a href="#rutas">2 · Rutas</a>
+  <a href="#centralidad">3 · Centralidad</a>
+  <a href="#eliminar">4 · Eliminar estación</a>
+  <a href="#fallos">5 · Puntos de fallo</a>
+  <a href="#grados">6 · Grados</a>
+  <a href="#teoria">7 · Propiedades</a>
+  <a href="#aleatoria">8 · Red aleatoria</a>
+  <a href="#optimizacion">9 · Optimización</a>
+  <a href="#comunidades">10 · Comunidades</a>
+  <a href="#ia">11 · IA</a>
+  <a href="#complejidad">12 · Complejidad</a>
+  <a href="#conclusiones">Conclusiones</a>
+</div></nav>
+
+<main>
+
+<!-- ================================================================ METODOLOGÍA -->
+<section class="bloque" id="metodologia">
+  <h2>Metodología y datos</h2>
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">Fuente de datos</h3>
+      <p>Las estaciones y el orden de las paradas de cada línea se descargaron de <b>OpenStreetMap</b> (relaciones
+      <code>route=subway</code> de la red <i>Metro de Madrid</i>) con la API Overpass. El dataset limpio está en
+      <code>data/metro_madrid.json</code> y en CSV (<code>estaciones.csv</code>, <code>conexiones.csv</code>).</p>
+      <div class="tabla-envoltura">{{ tablas.lineas }}</div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Supuestos del modelo de tiempos</h3>
+      <p>Los datos abiertos no traen tiempos entre estaciones, así que se estiman con la distancia geográfica:</p>
+      <span class="formula">t(u, v) = d<sub>haversine</sub>(u, v) / {{ constantes.velocidad|int }} km/h · 60 + {{ constantes.parada }} min</span>
+      <ul>
+        <li>Velocidad comercial media: <b>{{ constantes.velocidad|int }} km/h</b>; parada en cada estación: <b>30 s</b>.</li>
+        <li>Transbordo dentro de una estación: <b>{{ constantes.transbordo|int }} min</b> (caminar entre andenes + espera).</li>
+        <li>Cambio de tren en el mismo andén (Tres Olivos, L10A ↔ L10B): <b>{{ constantes.mismo_anden|int }} min</b>.</li>
+        <li>Pasillos peatonales (Noviciado ↔ Plaza de España, Embajadores ↔ Acacias): caminata a {{ constantes.peaton }} km/h + espera.</li>
+      </ul>
+      <h3>Pasos</h3>
+      <ol>
+        <li>Recolección y estructuración de las 13 líneas.</li>
+        <li>Construcción del grafo con NetworkX y estructuras propias (lista de adyacencia).</li>
+        <li>Algoritmos de camino más corto implementados a mano y validados contra NetworkX.</li>
+        <li>Métricas estructurales, simulación de fallos y análisis de robustez.</li>
+        <li>Optimización combinatoria, modelos nulos e IA (A* y scikit-learn).</li>
+        <li>Visualización y documentación.</li>
+      </ol>
+    </div>
+  </div>
+  <h3>Arquitectura del código</h3>
+  <div class="grid3">
+    <div class="caja"><h4><code>modelos.py · datos.py</code></h4>Clases <code>Estacion</code>, <code>Linea</code>, <code>Conexion</code>; carga del JSON y modelo de tiempos.</div>
+    <div class="caja"><h4><code>grafo.py</code></h4>Grafo de estaciones <i>G</i>, grafo de servicios <i>G<sub>L</sub></i>, lista y matriz de adyacencia.</div>
+    <div class="caja"><h4><code>rutas.py</code></h4>BFS, Dijkstra y A* propios; rutas con transbordos.</div>
+    <div class="caja"><h4><code>metricas.py</code></h4>Grados, centralidades, densidad, diámetro, Euler, MST, comunidades.</div>
+    <div class="caja"><h4><code>robustez.py</code></h4>Puntos de articulación, puentes, eliminación de nodos y aristas, ataques.</div>
+    <div class="caja"><h4><code>optimizacion.py</code></h4>Cartero chino, planificación de tramos nuevos, coloreo.</div>
+    <div class="caja"><h4><code>modelos_nulos.py</code></h4>Comparación con redes aleatorias de referencia.</div>
+    <div class="caja"><h4><code>ia.py · complejidad.py</code></h4>Modelos de scikit-learn y medición empírica de complejidad.</div>
+    <div class="caja"><h4><code>visualizacion.py · reporte.py</code></h4>Gráficas, mapas y este reporte. Las pruebas automáticas están en <code>tests/</code>.</div>
+  </div>
+</section>
+
+<!-- ================================================================ 1 ESTRUCTURA -->
+<section class="bloque" id="estructura">
+  <h2><span class="numero">1</span>Estructura del grafo</h2>
+  <p class="pregunta">¿Cuál es la estructura del grafo?</p>
+  <div class="grid2">
+    <div class="caja">
+      <h4>Modelo principal: grafo de estaciones G = (V, E, w)</h4>
+      <ul>
+        <li><b>V</b>: {{ r.resumen.vertices }} estaciones. Una estación de transbordo (p. ej. Sol, con L1, L2 y L3) es un solo vértice.</li>
+        <li><b>E</b>: {{ r.resumen.aristas }} aristas = {{ r.resumen.tramos_de_tren }} tramos de tren entre estaciones consecutivas + {{ r.resumen.pasillos_peatonales }} pasillos peatonales.</li>
+        <li><b>w</b>: E → ℝ<sup>+</sup>, peso en tiempo (min) o distancia (km).</li>
+        <li><b>No dirigido</b> (los trenes van en ambos sentidos), <b>ponderado</b>, <b>simple</b> (si dos líneas comparten tramo, como Chamartín – Plaza de Castilla con L1 y L10, hay una sola arista) y <b>conexo</b>.</li>
+      </ul>
+    </div>
+    <div class="caja">
+      <h4>Modelo auxiliar: grafo de servicios G<sub>L</sub></h4>
+      <p>Cada vértice es un par <i>(estación, servicio)</i>: {{ r.gl_vertices }} vértices y {{ r.gl_aristas }} aristas, de las que {{ r.gl_transbordos }} son de transbordo.
+      Un camino en G<sub>L</sub> sabe en qué línea va el viajero, lo que permite <b>contar y minimizar transbordos</b> (imposible en G).
+      La L10 se divide en los servicios <b>10A</b> y <b>10B</b> porque en Tres Olivos hay que cambiar de tren.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div>
+      <h3>Métricas estructurales</h3>
+      <div class="tabla-envoltura">{{ tablas.globales }}</div>
+    </div>
+    <div>
+      <h3>Lista de adyacencia (estructura propia)</h3>
+      <p>Los algoritmos de <code>rutas.py</code> trabajan sobre un <code>dict[str, list[tuple[str, float]]]</code>.</p>
+      <div class="tabla-envoltura">{{ tablas.adyacencia }}</div>
+      <h3>Matriz de adyacencia (fragmento del centro)</h3>
+      <p>A<sub>ij</sub> = 1 si {v<sub>i</sub>, v<sub>j</sub>} ∈ E. Es simétrica porque el grafo es no dirigido. Matriz completa: {{ r.resumen.vertices }} × {{ r.resumen.vertices }}.</p>
+      <div class="tabla-envoltura">{{ tablas.matriz }}</div>
+    </div>
+  </div>
+  <div class="nota">La densidad es <span class="cifra">{{ "%.4f"|format(r.globales.densidad) }}</span>: existe menos del 1% de las aristas posibles.
+  Es lo normal en una red de transporte, donde cada estación solo se conecta con sus vecinas físicas. El grado medio es {{ r.globales.grado_medio }}.</div>
+</section>
+
+<!-- ================================================================ 2 RUTAS -->
+<section class="bloque" id="rutas">
+  <h2><span class="numero">2</span>Ruta más corta entre dos estaciones</h2>
+  <p class="pregunta">¿Cuál es la ruta más corta (en tiempo o número de paradas) entre dos estaciones cualesquiera?</p>
+  <p>Mapa con las 13 líneas y las {{ r.resumen.vertices }} estaciones (nodos). Elige origen y destino escribiendo o haciendo clic en una estación.
+  La ruta se calcula en el navegador con Dijkstra sobre el grafo de servicios.</p>
+
+  <div class="panel">
+    <label>Origen<input type="text" id="origen" list="lista-estaciones" value="Las Rosas" autocomplete="off"></label>
+    <button id="invertir" title="Intercambiar origen y destino">⇄</button>
+    <label>Destino<input type="text" id="destino" list="lista-estaciones" value="Pitis" autocomplete="off"></label>
+    <label>Criterio
+      <div class="segmentado" id="criterio">
+        <button data-c="tiempo" class="activo">Menor tiempo</button>
+        <button data-c="transbordos">Menos transbordos</button>
+        <button data-c="paradas">Menos paradas</button>
+      </div>
+    </label>
+    <button class="primario" id="calcular">Calcular ruta</button>
+  </div>
+  <datalist id="lista-estaciones"></datalist>
+
+  <div class="grid-mapa">
+    <div>
+      <div id="mapa-rutas" class="mapa"></div>
+      <div class="leyenda" id="leyenda-lineas"></div>
+    </div>
+    <div>
+      <div id="resultado-ruta"><p class="pregunta">Calcula una ruta para ver el itinerario.</p></div>
+      <h3>Comparación de algoritmos (en vivo)</h3>
+      <div class="tabla-envoltura" id="tabla-algoritmos"></div>
+    </div>
+  </div>
+
+  <h3>Algoritmos implementados</h3>
+  <div class="grid3">
+    <div class="caja"><h4>BFS · menos paradas · O(V + E)</h4>Explora por niveles con una cola FIFO. En un grafo no ponderado, el primer camino que llega al destino es el de menos aristas.</div>
+    <div class="caja"><h4>Dijkstra · menor tiempo · O((V + E) log V)</h4>Cola de prioridad (heap): siempre expande el vértice con menor distancia acumulada g(n). Es correcto porque los pesos son positivos.</div>
+    <div class="caja"><h4>A* · búsqueda informada (IA)</h4>Prioridad f(n) = g(n) + h(n), con h(n) = distancia en línea recta / {{ constantes.velocidad|int }} km/h.
+    La heurística es <b>admisible</b> (nunca sobreestima, por la desigualdad triangular), así que la ruta sigue siendo óptima.</div>
+  </div>
+  <p>Para <b>menos transbordos</b>, cada transbordo pesa 1000 en G<sub>L</sub>. Eso equivale a un orden lexicográfico: primero minimiza transbordos y luego tiempo.
+  El origen y el destino se conectan a todos sus servicios mediante vértices virtuales de costo 0.</p>
+  <div class="tabla-envoltura">{{ tablas.ejemplos_rutas }}</div>
+  <div class="nota ok"><b>Validación:</b> en {{ r.validacion.pares }} pares aleatorios, Dijkstra propio coincide con NetworkX en
+  {{ r.validacion.dijkstra }}/{{ r.validacion.pares }}, A* en {{ r.validacion.a_estrella }}/{{ r.validacion.pares }} y BFS en {{ r.validacion.bfs }}/{{ r.validacion.pares }}.
+  A* explora en promedio <span class="cifra">{{ r.validacion.explorados_a_estrella }}</span> nodos frente a {{ r.validacion.explorados_dijkstra }} de Dijkstra
+  (<b>{{ r.validacion.ahorro_a_estrella }}% menos</b>).</div>
+  <div class="nota alerta">Los criterios pueden dar rutas distintas: de <i>Las Rosas</i> a <i>Pitis</i>, la ruta más rápida usa 2 transbordos y la de menos transbordos tarda más.
+  Es un problema de <b>optimización multiobjetivo</b>: el "mejor" camino depende de la función de peso.</div>
+</section>
+
+<!-- ================================================================ 3 CENTRALIDAD -->
+<section class="bloque" id="centralidad">
+  <h2><span class="numero">3</span>Estaciones más importantes (centralidad)</h2>
+  <p class="pregunta">¿Qué estaciones son las más importantes según su centralidad (mayor número de conexiones o de rutas que pasan por ellas)?</p>
+  <div class="grid3">
+    <div class="caja"><h4>Grado deg(v)</h4>Número de vecinos directos: "mayor número de conexiones".</div>
+    <div class="caja"><h4>Intermediación C<sub>B</sub>(v)</h4>C<sub>B</sub>(v) = Σ<sub>s≠v≠t</sub> σ<sub>st</sub>(v) / σ<sub>st</sub>: fracción de caminos más cortos que pasan por v, es decir, "rutas que pasan por ella".</div>
+    <div class="caja"><h4>Cercanía C<sub>C</sub>(v)</h4>C<sub>C</sub>(v) = (n − 1) / Σ<sub>u</sub> d(v, u): qué tan cerca está v de todas las demás.</div>
+  </div>
+  <div class="grid2">
+    <div><div id="mapa-centralidad" class="mapa bajo"></div>
+      <div class="leyenda"><span>Tamaño y color del nodo = intermediación</span></div></div>
+    <div class="grafico" id="g-top_intermediacion"></div>
+  </div>
+  <div class="grid2">
+    <div><h3>Top 15 por intermediación</h3><div class="tabla-envoltura">{{ tablas.centralidad }}</div></div>
+    <div><div class="grafico" id="g-top_cercania"></div><div class="grafico" id="g-correlacion"></div></div>
+  </div>
+  <div class="nota">Tener más conexiones no es lo mismo que ser un paso obligado: la correlación entre grado e intermediación es solo
+  <span class="cifra">{{ r.corr_grado_bc }}</span>. <i>Nuevos Ministerios</i> y <i>Gregorio Marañón</i> encabezan la intermediación porque unen el norte con el centro.</div>
+</section>
+
+<!-- ================================================================ 4 ELIMINAR -->
+<section class="bloque" id="eliminar">
+  <h2><span class="numero">4</span>¿Qué pasa si se elimina una estación clave?</h2>
+  <p class="pregunta">¿Qué pasa con la conectividad de la red si se elimina una estación clave (por ejemplo, un nodo de transbordo)?</p>
+  <p>Eliminar el vértice v da el subgrafo G − v. Se mide el número de <b>componentes conexas</b>, el tamaño de la <b>componente gigante</b> y la
+  <b>eficiencia global</b> E = 1/(n(n−1)) Σ<sub>u≠v</sub> 1/d(u, v), que vale 0 entre estaciones incomunicadas. <b>Simulador:</b> haz clic en estaciones del mapa para cerrarlas.</p>
+  <div class="panel">
+    <label>Cerrar estación<input type="text" id="sim-estacion" list="lista-estaciones" placeholder="Escribe una estación" autocomplete="off"></label>
+    <button class="primario" id="sim-agregar">Cerrar</button>
+    <button data-preset="Sol">Sol</button>
+    <button data-preset="Avenida de América">Avenida de América</button>
+    <button data-preset="Pueblo Nuevo">Pueblo Nuevo</button>
+    <button data-preset="top5">Top 5 intermediación</button>
+    <button id="sim-reset">Restablecer</button>
+  </div>
+  <div class="grid-mapa">
+    <div id="mapa-eliminar" class="mapa"></div>
+    <div id="sim-resultado"></div>
+  </div>
+  <h3>Comparación de estaciones clave</h3>
+  <div class="tabla-envoltura">{{ tablas.eliminacion }}</div>
+  <div class="nota">Cerrar los grandes intercambiadores del centro (Sol, Avenida de América) <b>no desconecta</b> la red: el centro tiene muchos ciclos y siempre hay
+  alternativas, aunque más largas. En cambio, <i>Pueblo Nuevo</i>, de grado 4, aísla <span class="cifra">{{ r.pueblo_nuevo.estaciones_desconectadas|length }}</span> estaciones (los ramales este de L5 y L7).
+  Lo que importa para la conectividad no es el grado sino la <b>posición estructural</b>.</div>
+</section>
+
+<!-- ================================================================ 5 FALLOS -->
+<section class="bloque" id="fallos">
+  <h2><span class="numero">5</span>Puntos únicos de fallo</h2>
+  <p class="pregunta">¿Existen estaciones cuya eliminación desconecta partes de la red (puntos únicos de fallo)?</p>
+  <div class="grid3">
+    <div class="caja"><h4>Punto de articulación</h4>Vértice v tal que G − v tiene más componentes que G. Hay <span class="cifra">{{ r.articulacion|length }}</span> ({{ "%.1f"|format(100 * r.articulacion|length / r.resumen.vertices) }}% de las estaciones).</div>
+    <div class="caja"><h4>Puente</h4>Arista cuya eliminación desconecta el grafo; una arista es puente si y solo si no está en ningún ciclo. Hay <span class="cifra">{{ r.puentes|length }}</span>.</div>
+    <div class="caja"><h4>Componentes biconexas</h4>Subgrafos maximales sin puntos de articulación (Hopcroft–Tarjan, DFS en O(V + E)). Hay {{ r.biconexas.numero }}; el núcleo mayor tiene <span class="cifra">{{ r.biconexas.mayor }}</span> estaciones.</div>
+  </div>
+  <div class="grid2">
+    <div><div id="mapa-fallos" class="mapa bajo"></div>
+      <div class="leyenda"><span><i class="punto" style="background:#DC2626"></i>punto de articulación</span><span><i style="background:#DC2626"></i>puente</span><span><i style="background:#94A3B8"></i>tramo en un ciclo</span></div></div>
+    <div><h3 style="margin-top:0">Estaciones cuyo cierre causa más daño</h3><div class="tabla-envoltura">{{ tablas.impacto }}</div></div>
+  </div>
+  <p>Puntos de articulación que además son estaciones de transbordo: {% for e in r.articulacion_transbordo %}<span class="chip rojo">{{ e }}</span> {% endfor %}</p>
+  <h3>Fallos aleatorios vs ataques dirigidos</h3>
+  <p>Se eliminan estaciones de forma progresiva, al azar (averías) o eligiendo siempre la de mayor grado o intermediación (ataque), recalculando tras cada paso.</p>
+  <div class="grafico" id="g-ataques"></div>
+  <div class="tabla-envoltura">{{ tablas.ataques }}</div>
+  <div class="nota alerta">La red es <b>robusta frente a fallos aleatorios pero frágil frente a ataques dirigidos</b>: con el 5% de las estaciones eliminadas
+  por intermediación, la componente gigante cae al {{ r.ataques['Ataque por intermediación'][5] }}%, frente al {{ r.ataques['Fallo aleatorio'][5] }}% con fallos al azar.</div>
+</section>
+
+<!-- ================================================================ 6 GRADOS -->
+<section class="bloque" id="grados">
+  <h2><span class="numero">6</span>Distribución estadística de los grados</h2>
+  <p class="pregunta">¿Cómo se distribuyen estadísticamente los grados de los nodos en la red completa?</p>
+  <div class="grid2">
+    <div class="grafico" id="g-grados"></div>
+    <div class="grafico" id="g-grados_loglog"></div>
+  </div>
+  <div class="grid2">
+    <div><h3>Estadísticos</h3><div class="tabla-envoltura">{{ tablas.grados_estadisticos }}</div></div>
+    <div><h3>Grado según número de líneas</h3><div class="tabla-envoltura">{{ tablas.grados_lineas }}</div>
+      <p>Una estación con L líneas tiene como máximo 2L vecinos: el grado está acotado físicamente.</p></div>
+  </div>
+  <div class="nota">La distribución está muy concentrada en <b>k = 2</b> (el {{ "%.0f"|format(100 * r.grados.probabilidades[2]) }}% de las estaciones son intermedias de una sola línea), con una cola corta
+  de intercambiadores (k = 4 a {{ r.grados.maximo }}) y {{ r.grados.frecuencias[1] }} terminales (k = 1). La asimetría es positiva ({{ r.grados.asimetria }}).
+  No es una red libre de escala como Internet: es una red <b>espacial</b>, con el grado limitado por la geografía.</div>
+</section>
+
+<!-- ================================================================ 7 TEORÍA -->
+<section class="bloque" id="teoria">
+  <h2><span class="numero">7</span>Propiedades y teoremas</h2>
+  <div class="grid2">
+    <div class="caja"><h4>Lema del apretón de manos</h4>
+      <span class="formula">Σ<sub>v∈V</sub> deg(v) = 2|E| → {{ r.apreton.suma_grados }} = 2 · {{ r.resumen.aristas }}</span>
+      Cada arista suma 1 al grado de sus dos extremos. Corolario: el número de vértices de grado impar es par (aquí, {{ r.euler.vertices_grado_impar }}).</div>
+    <div class="caja"><h4>Caminos y circuitos eulerianos</h4>
+      Un grafo conexo tiene circuito euleriano si y solo si todos sus grados son pares, y camino euleriano si hay exactamente 0 o 2 vértices de grado impar.
+      Aquí hay <b>{{ r.euler.vertices_grado_impar }}</b> vértices impares, así que <b>no</b> se pueden recorrer todos los tramos una sola vez. La solución óptima es el <a href="#optimizacion">problema del cartero chino</a>.</div>
+    <div class="caja"><h4>Ciclos y árbol de expansión mínima</h4>
+      Número ciclomático μ = |E| − |V| + c = {{ r.resumen.aristas }} − {{ r.resumen.vertices }} + 1 = <b>{{ r.globales.numero_ciclomatico }}</b> ciclos independientes.
+      Kruskal encuentra el árbol con |V| − 1 = {{ r.mst.aristas_mst }} aristas ({{ r.mst.tiempo_mst_min }} min). Las {{ r.mst.aristas_redundantes }} restantes son la <b>redundancia</b> que ofrece rutas alternativas ({{ r.mst.porcentaje_redundancia }}% del tiempo total de vía).</div>
+    <div class="caja"><h4>Planaridad (teorema de Kuratowski)</h4>
+      El grafo <b>{{ "sí" if r.globales.es_planar else "no" }}</b> es planar: contiene una subdivisión de K<sub>5</sub> o K<sub>3,3</sub>, así que no se puede dibujar en el plano sin cruces.
+      En la realidad las líneas se cruzan bajo tierra, a distinto nivel. Tampoco es bipartito: tiene ciclos impares, por ejemplo {{ r.coloreo.triangulos }} triángulos como {{ r.coloreo.clique_maxima|join(" – ") }}.</div>
+    <div class="caja"><h4>Diámetro, radio y centro</h4>
+      Diámetro = {{ r.globales.diametro_paradas }} paradas, entre <b>{{ r.diametral.u }}</b> y <b>{{ r.diametral.v }}</b>. Radio = {{ r.globales.radio_paradas }}.
+      Centro del grafo (mínima excentricidad): {% for c in r.centro %}<b>{{ c }}</b>{% if not loop.last %}, {% endif %}{% endfor %}.</div>
+    <div class="caja"><h4>Mundo pequeño</h4>
+      Camino medio = {{ r.globales.camino_medio_paradas }} paradas ({{ r.globales.camino_medio_tiempo_min }} min sin transbordos).
+      Agrupamiento = {{ r.globales.coeficiente_clustering }}: casi no hay triángulos. <b>No</b> es una red de mundo pequeño; la sección 8 lo compara con redes aleatorias.</div>
+  </div>
+</section>
+
+<!-- ================================================================ 8 ALEATORIA -->
+<section class="bloque" id="aleatoria">
+  <h2><span class="numero">8</span>Red real frente a redes aleatorias</h2>
+  <p>¿Qué propiedades son <b>fruto del diseño</b> y cuáles saldrían por azar? Se compara la red con 20 muestras de dos <b>modelos nulos</b>:</p>
+  <div class="grid2">
+    <div class="caja"><h4>Erdős–Rényi G(n, m)</h4>Mismos {{ r.resumen.vertices }} vértices y {{ r.resumen.aristas }} aristas, conectados al azar.</div>
+    <div class="caja"><h4>Grados preservados</h4>Misma secuencia de grados que el metro, pero con las aristas intercambiadas al azar (<i>double edge swap</i>), manteniendo la conexidad.</div>
+  </div>
+  <div class="tabla-envoltura">{{ tablas.nulos }}</div>
+  <div class="grid2">
+    <div class="grafico" id="g-nulos_grados"></div>
+    <div class="grafico" id="g-nulos_robustez"></div>
+  </div>
+  <div class="nota">
+    <ul style="margin:0">
+      <li>Con las mismas aristas puestas al azar, la red <b>ni siquiera queda conexa</b> (≈{{ "%.0f"|format(r.nulos['Erdős–Rényi G(n,m) (media)'].componentes) }} componentes). El diseño del metro garantiza la conectividad con muy pocas aristas.</li>
+      <li>El camino medio real ({{ "%.1f"|format(r.nulos['Metro de Madrid (real)'].camino_medio) }}) es mucho mayor que el aleatorio ({{ "%.1f"|format(r.nulos['Erdős–Rényi G(n,m) (media)'].camino_medio) }}): las aristas solo unen estaciones cercanas, como en toda red <b>espacial</b>.</li>
+      <li>La <b>asortatividad</b> real es positiva ({{ "%.2f"|format(r.nulos['Metro de Madrid (real)'].asortatividad) }}) frente a ≈0 en los modelos nulos: los intercambiadores tienden a conectarse con otros intercambiadores (el núcleo del centro).</li>
+      <li>Hay más puntos de articulación que en las redes aleatorias ({{ "%.0f"|format(100 * r.nulos['Metro de Madrid (real)'].fraccion_articulacion) }}% frente a {{ "%.0f"|format(100 * r.nulos['Grados preservados (media)'].fraccion_articulacion) }}% con grados preservados), por los ramales arborescentes de la periferia.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================================================================ 9 OPTIMIZACIÓN -->
+<section class="bloque" id="optimizacion">
+  <h2><span class="numero">9</span>Optimización combinatoria</h2>
+  <div class="panel">
+    <div class="segmentado" id="vista-opt">
+      <button data-v="cartero" class="activo">Cartero chino</button>
+      <button data-v="tramos">Tramos nuevos</button>
+      <button data-v="coloreo">Coloreo</button>
+      <button data-v="mst">Árbol de expansión mínima</button>
+    </div>
+  </div>
+  <div class="grid-mapa">
+    <div><div id="mapa-opt" class="mapa"></div><div class="leyenda" id="leyenda-opt"></div></div>
+    <div id="texto-opt"></div>
+  </div>
+
+  <h3>9.1 Problema del cartero chino: inspección de todas las vías</h3>
+  <p>¿Cuál es el recorrido cerrado más corto que pasa al menos una vez por cada tramo (p. ej. un tren de inspección)? Como hay
+  {{ r.cartero.vertices_impares }} vértices de grado impar, no existe circuito euleriano. El algoritmo de Edmonds–Johnson:</p>
+  <ol>
+    <li>Encuentra los {{ r.cartero.vertices_impares }} vértices de grado impar.</li>
+    <li>Calcula las distancias mínimas entre ellos (Dijkstra) y los empareja con un <b>emparejamiento perfecto de peso mínimo</b>.</li>
+    <li>Duplica los caminos emparejados: todos los grados quedan pares, así que el multigrafo es euleriano.</li>
+    <li>Obtiene el circuito euleriano con el algoritmo de Hierholzer.</li>
+  </ol>
+  <div class="nota ok">Recorrer toda la red una vez cuesta {{ r.cartero.costo_red_min }} min; el recorrido óptimo necesita repetir {{ r.cartero.duplicadas }} tramos
+  (+{{ r.cartero.costo_extra_min }} min, un {{ r.cartero.extra_pct }}% extra), en total <span class="cifra">{{ r.cartero.costo_total_min }} min ≈ {{ r.cartero.horas }} h</span>,
+  en un circuito de {{ r.cartero.aristas_circuito }} tramos que sale y vuelve a Sol.</div>
+
+  <h3>9.2 ¿Dónde construir el próximo tramo?</h3>
+  <p>Se evaluaron las {{ r.expansion.candidatas }} conexiones posibles entre estaciones a menos de 2 km que hoy no están unidas. Para cada una se recalcula la
+  eficiencia global ponderada por tiempo (todas las distancias mínimas con Dijkstra sobre matriz dispersa) y los puntos de articulación y puentes que desaparecerían.</p>
+  <div class="grid2">
+    <div><h4>Mayor ganancia de eficiencia</h4><div class="tabla-envoltura">{{ tablas.expansion_eficiencia }}</div></div>
+    <div><h4>Más puntos únicos de fallo eliminados</h4><div class="tabla-envoltura">{{ tablas.expansion_articulacion }}</div></div>
+  </div>
+  <div class="nota">Hay dos objetivos en conflicto. Unir <b>{{ r.mejor_eficiencia.origen }} – {{ r.mejor_eficiencia.destino }}</b> mejora más la eficiencia (+{{ r.mejor_eficiencia['ganancia_eficiencia_%'] }}%),
+  porque acorta viajes en el centro. Unir <b>{{ r.mejor_articulacion.origen }} – {{ r.mejor_articulacion.destino }}</b> ({{ r.mejor_articulacion.distancia_km }} km)
+  elimina {{ r.mejor_articulacion.puntos_articulacion_eliminados }} puntos de articulación: cierra un ciclo entre ramales del norte y protege a esas estaciones de quedar aisladas.</div>
+
+  <h3>9.3 Coloreo de grafos: turnos de mantenimiento</h3>
+  <p>Problema: asignar a cada estación una noche de mantenimiento de modo que <b>nunca cierren a la vez dos estaciones vecinas</b> (siempre queda una alternativa).
+  Es un coloreo propio de vértices; el mínimo de noches es el <b>número cromático</b> χ(G).</p>
+  <div class="grid2">
+    <div class="tabla-envoltura">{{ tablas.coloreo }}</div>
+    <div class="nota ok" style="margin-top:0">Cotas: ω(G) ≤ χ(G) ≤ Δ(G) + 1, es decir, {{ r.coloreo.cota_inferior_clique }} ≤ χ(G) ≤ {{ r.coloreo.cota_superior_voraz }}.
+    DSATUR logra <b>{{ r.coloreo.colores }} colores</b>, y como hay triángulos (la red tiene {{ r.coloreo.triangulos }}, por ejemplo {{ r.coloreo.clique_maxima|join(", ") }}) se necesitan al menos 3:
+    <span class="cifra">χ(G) = {{ r.coloreo.colores }}</span>, un resultado óptimo demostrado. Bastan {{ r.coloreo.colores }} noches de mantenimiento.</div>
+  </div>
+</section>
+
+<!-- ================================================================ 10 COMUNIDADES -->
+<section class="bloque" id="comunidades">
+  <h2><span class="numero">10</span>Comunidades: zonas naturales de la red</h2>
+  <p>El algoritmo de <b>Louvain</b> agrupa estaciones maximizando la <b>modularidad</b>:</p>
+  <span class="formula">Q = (1/2m) Σ<sub>ij</sub> [ A<sub>ij</sub> − k<sub>i</sub>k<sub>j</sub>/2m ] δ(c<sub>i</sub>, c<sub>j</sub>)</span>
+  <p>Q mide cuántas aristas más hay dentro de cada grupo de las que habría al azar. Se encontraron <span class="cifra">{{ r.comunidades.numero }}</span> comunidades con
+  <b>Q = {{ r.comunidades.modularidad }}</b> (valores sobre 0.3 ya indican una estructura de comunidades clara).</p>
+  <div class="grid-mapa">
+    <div id="mapa-comunidades" class="mapa bajo"></div>
+    <div><div class="grafico" id="g-comunidades"></div>
+      <p>Las comunidades corresponden a barrios y corredores: el sur metropolitano de la L12, el corredor este de L5/L7, el norte de la L10, etc.
+      Sirven para planificar servicios zonales o buses de reemplazo por zona.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 11 IA -->
+<section class="bloque" id="ia">
+  <h2><span class="numero">11</span>Inteligencia artificial</h2>
+  <div class="grid3">
+    <div class="caja"><h4>1 · Búsqueda A*</h4>Búsqueda heurística informada (sección 2): explora {{ r.validacion.ahorro_a_estrella }}% menos nodos que Dijkstra y llega a la misma ruta óptima.</div>
+    <div class="caja"><h4>2 · Predicción del tiempo de viaje</h4>Regresión supervisada sobre los {{ r.ia_pares }} pares de estaciones, con el tiempo real (Dijkstra en G<sub>L</sub>) como etiqueta y variables que no requieren recorrer el grafo.</div>
+    <div class="caja"><h4>3 · Clasificación de estaciones críticas</h4>Bosque Aleatorio que detecta el 15% de estaciones con mayor intermediación usando características de costo O(V + E), en lugar de la intermediación exacta, que cuesta O(V·E).</div>
+  </div>
+  <h3>Predicción del tiempo de viaje</h3>
+  <div class="grid2">
+    <div><div class="tabla-envoltura">{{ tablas.ia_tiempo }}</div><div class="grafico" id="g-ia_importancia"></div></div>
+    <div class="grafico" id="g-ia_dispersion"></div>
+  </div>
+  <h3>Clasificador de estaciones críticas (validación cruzada de 5 pliegues)</h3>
+  <div class="grid2">
+    <div>{{ tablas.ia_clf }}</div>
+    <div class="grafico" id="g-ia_clf_importancia"></div>
+  </div>
+  <div class="nota">El tiempo de viaje se explica sobre todo por la distancia en línea recta. El Bosque Aleatorio
+  (R² = {{ r.ia_tiempo['Bosque Aleatorio'].R2 }}, error medio {{ r.ia_tiempo['Bosque Aleatorio'].MAE_min }} min) supera a la regresión lineal porque captura efectos no lineales, como los transbordos.
+  El clasificador logra un F1 moderado ({{ r.ia_clf.f1_critica }}) para la clase crítica: la intermediación es una propiedad <b>global</b> que no se deduce del todo con variables baratas.
+  Eso justifica calcularla sobre el grafo completo.</div>
+</section>
+
+<!-- ================================================================ 12 COMPLEJIDAD -->
+<section class="bloque" id="complejidad">
+  <h2><span class="numero">12</span>Complejidad empírica de los algoritmos</h2>
+  <p>Se generaron redes sintéticas parecidas al metro (planas, dispersas, con E ≈ 1.15·V) de 250 a 16 000 vértices y se midieron 60 consultas aleatorias
+  con nuestras implementaciones (mejor de 3 repeticiones). Teoría: BFS O(V + E) y Dijkstra/A* O((V + E) log V). Con E proporcional a V, se espera un crecimiento casi lineal: pendiente ≈ 1 en escala log-log.</p>
+  <div class="grafico" id="g-complejidad"></div>
+  <div class="grid2">
+    <div class="tabla-envoltura">{{ tablas.complejidad }}</div>
+    <div class="nota" style="margin-top:0">Pendientes medidas: BFS {{ r.complejidad['BFS'] }}, Dijkstra {{ r.complejidad['Dijkstra'] }}, A* {{ r.complejidad['A*'] }}.
+    Son cercanas a 1, como predice la teoría para grafos dispersos; el exceso sobre 1 refleja el factor log V del heap y los efectos de caché.
+    A* explora muchos menos nodos que Dijkstra en todos los tamaños.</div>
+  </div>
+</section>
+
+<!-- ================================================================ CONCLUSIONES -->
+<section class="bloque" id="conclusiones">
+  <h2>Conclusiones</h2>
+  <div class="grid2">
+    <div class="caja"><h4>Estructura</h4>Grafo simple, no dirigido, ponderado y conexo: {{ r.resumen.vertices }} vértices, {{ r.resumen.aristas }} aristas, densidad
+    {{ "%.4f"|format(r.globales.densidad) }} y grado medio {{ r.globales.grado_medio }}. Los {{ r.globales.numero_ciclomatico }} ciclos independientes, concentrados en el centro, dan las rutas alternativas.</div>
+    <div class="caja"><h4>Eficiencia</h4>Diámetro de {{ r.globales.diametro_paradas }} paradas ({{ r.diametral.u }} ↔ {{ r.diametral.v }}) y camino medio de {{ r.globales.camino_medio_paradas }} paradas.
+    Dijkstra y A* encuentran rutas óptimas en milisegundos; A* explora {{ r.validacion.ahorro_a_estrella }}% menos. Los criterios de tiempo, paradas y transbordos pueden dar rutas distintas.</div>
+    <div class="caja"><h4>Centralidad</h4>Nuevos Ministerios, Gregorio Marañón, Alonso Martínez y Avenida de América concentran las rutas óptimas. Tener el grado más alto no implica la mayor intermediación (correlación {{ r.corr_grado_bc }}).</div>
+    <div class="caja"><h4>Robustez</h4>El {{ "%.0f"|format(100 * r.articulacion|length / r.resumen.vertices) }}% de las estaciones son puntos de articulación, casi todos en ramales periféricos; el núcleo
+    biconexo de {{ r.biconexas.mayor }} estaciones resiste. La red es robusta ante fallos aleatorios y frágil ante ataques dirigidos. Los puntos de articulación de mayor impacto (Pueblo Nuevo, Sainz de Baranda) deben tener prioridad en mantenimiento y planes de contingencia.</div>
+    <div class="caja"><h4>Grados y modelos nulos</h4>Distribución dominada por k = 2, sin ley de potencias: es una red espacial. Frente a redes aleatorias equivalentes, el metro es conexo con mínimas aristas, tiene caminos más largos y asortatividad positiva: su estructura es fruto del diseño.</div>
+    <div class="caja"><h4>Optimización e IA</h4>La inspección completa de vías toma ≈{{ r.cartero.horas }} h (cartero chino), bastan {{ r.coloreo.colores }} noches de mantenimiento (χ = {{ r.coloreo.colores }}) y el tramo
+    {{ r.mejor_articulacion.origen }} – {{ r.mejor_articulacion.destino }} es la mejor inversión en robustez. Los modelos de IA estiman tiempos con R² = {{ r.ia_tiempo['Bosque Aleatorio'].R2 }}.</div>
+  </div>
+</section>
+
+</main>
+<footer>Datos © colaboradores de OpenStreetMap (ODbL) · Generado con Python el {{ fecha }} · <code>python src/reporte.py</code></footer>
+
+<script>{{ leaflet_js }}</script>
+<script>{{ plotly_js }}</script>
+<script>
+const DATOS = {{ datos_json }};
+const GRAFICOS = {{ graficos_json }};
+</script>
+{% raw %}
+<script>
+"use strict";
+// ======================================================================== utilidades
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const normalizar = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const EST = Object.fromEntries(DATOS.estaciones.map((e) => [e.n, e]));
+const NOMBRES = DATOS.estaciones.map((e) => e.n).sort((a, b) => a.localeCompare(b, "es"));
+const PASILLO = "pasillo";
+const colorLinea = (l) => (l === PASILLO ? "#64748B" : DATOS.colores[DATOS.lineaDe[l] || l] || "#888");
+const textoInsignia = (l) => (l === PASILLO ? "a pie" : l === "R" ? "R" : "L" + l);
+const colorTextoInsignia = (l) => (["3", "8", "1"].includes(DATOS.lineaDe[l] || l) ? "#111" : "#fff");
+
+function buscarEstacion(texto) {
+  const t = normalizar(texto || "");
+  if (!t) return null;
+  const exacta = NOMBRES.find((n) => normalizar(n) === t);
+  if (exacta) return exacta;
+  const parciales = NOMBRES.filter((n) => normalizar(n).includes(t));
+  return parciales.length === 1 ? parciales[0] : null;
+}
+
+document.getElementById("lista-estaciones").innerHTML = NOMBRES.map((n) => `<option value="${esc(n)}">`).join("");
+
+// Cola de prioridad (montículo binario) para Dijkstra y A*
+class Heap {
+  constructor() { this.a = []; }
+  get size() { return this.a.length; }
+  push(p, v) {
+    const a = this.a; a.push([p, v]);
+    let i = a.length - 1;
+    while (i > 0) { const j = (i - 1) >> 1; if (a[j][0] <= a[i][0]) break; [a[i], a[j]] = [a[j], a[i]]; i = j; }
+  }
+  pop() {
+    const a = this.a, top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last; let i = 0;
+      for (;;) {
+        const l = 2 * i + 1, r = l + 1; let m = i;
+        if (l < a.length && a[l][0] < a[m][0]) m = l;
+        if (r < a.length && a[r][0] < a[m][0]) m = r;
+        if (m === i) break; [a[i], a[m]] = [a[m], a[i]]; i = m;
+      }
+    }
+    return top;
+  }
+}
+
+function reconstruir(previo, destino) {
+  const camino = []; let n = destino;
+  while (n !== undefined && n !== null) { camino.push(n); n = previo.get(n); }
+  return camino.reverse();
+}
+
+function dijkstra(adj, origen, destino, h = () => 0) {
+  const dist = new Map([[origen, 0]]), previo = new Map([[origen, null]]), visitados = new Set();
+  const heap = new Heap(); heap.push(h(origen), origen);
+  while (heap.size) {
+    const [, u] = heap.pop();
+    if (visitados.has(u)) continue;
+    visitados.add(u);
+    if (u === destino) return { camino: reconstruir(previo, destino), costo: dist.get(u), explorados: visitados.size };
+    for (const [v, w] of adj.get(u) || []) {
+      const nd = dist.get(u) + w;
+      if (nd < (dist.has(v) ? dist.get(v) : Infinity)) { dist.set(v, nd); previo.set(v, u); heap.push(nd + h(v), v); }
+    }
+  }
+  return { camino: [], costo: Infinity, explorados: visitados.size };
+}
+
+function bfs(adj, origen, destino, excluir = null) {
+  const previo = new Map([[origen, null]]), cola = [origen]; let i = 0;
+  while (i < cola.length) {
+    const u = cola[i++];
+    if (u === destino) break;
+    for (const [v] of adj.get(u) || []) if (!previo.has(v) && !(excluir && excluir.has(v))) { previo.set(v, u); cola.push(v); }
+  }
+  return { camino: previo.has(destino) ? reconstruir(previo, destino) : [], explorados: i };
+}
+
+function haversine(a, b) {
+  const R = 6371, rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+// ======================================================================== grafos
+const ADJ_G = new Map(NOMBRES.map((n) => [n, []]));
+const TIEMPO_G = new Map();
+for (const [u, v, t] of DATOS.aristasG) {
+  ADJ_G.get(u).push([v, t]); ADJ_G.get(v).push([u, t]);
+  TIEMPO_G.set(u + "\u0001" + v, t); TIEMPO_G.set(v + "\u0001" + u, t);
+}
+const clave = (e, s) => e + "|" + s;
+const ARISTA_GL = new Map();
+for (const [u, su, v, sv, tipo, tiempo, distancia, espera, caminata] of DATOS.aristasGL) {
+  const d = { tipo, tiempo, distancia, espera, caminata };
+  ARISTA_GL.set(clave(u, su) + "→" + clave(v, sv), d);
+  ARISTA_GL.set(clave(v, sv) + "→" + clave(u, su), d);
+}
+
+function adjServicios(origen, destino, criterio) {
+  const adj = new Map();
+  const add = (a, b, w) => { if (!adj.has(a)) adj.set(a, []); adj.get(a).push([b, w]); };
+  for (const [u, su, v, sv, tipo, tiempo] of DATOS.aristasGL) {
+    let w;
+    if (criterio === "paradas") w = tipo === "tramo" ? 1 : 0.001;
+    else if (criterio === "transbordos") w = tipo === "tramo" ? tiempo : 1000 + tiempo;
+    else w = tiempo;
+    add(clave(u, su), clave(v, sv), w); add(clave(v, sv), clave(u, su), w);
+  }
+  for (const s of EST[origen].servicios) add("ORIGEN", clave(origen, s), 0);
+  for (const s of EST[destino].servicios) add(clave(destino, s), "DESTINO", 0);
+  return adj;
+}
+
+function describir(camino) {
+  const nodos = camino.slice(1, -1).map((k) => { const i = k.lastIndexOf("|"); return [k.slice(0, i), k.slice(i + 1)]; });
+  const segmentos = []; let viaje = 0, transb = 0, tiempoTransb = 0, distancia = 0, paradas = 0;
+  for (let i = 0; i + 1 < nodos.length; i++) {
+    const [u, su] = nodos[i], [v, sv] = nodos[i + 1];
+    const d = ARISTA_GL.get(clave(u, su) + "→" + clave(v, sv));
+    if (d.tipo === "transbordo") {
+      transb++; tiempoTransb += d.tiempo;
+      if (u !== v) { distancia += d.distancia; segmentos.push({ linea: PASILLO, estaciones: [u, v] }); }
+      continue;
+    }
+    paradas++; viaje += d.tiempo; distancia += d.distancia;
+    const ult = segmentos[segmentos.length - 1];
+    if (ult && ult.linea === su) ult.estaciones.push(v); else segmentos.push({ linea: su, estaciones: [u, v] });
+  }
+  return { segmentos, paradas, transbordos: transb, viaje, tiempoTransb, total: viaje + tiempoTransb, distancia };
+}
+
+// ======================================================================== mapas
+const BOUNDS = L.latLngBounds(DATOS.estaciones.map((e) => [e.lat, e.lon]));
+
+// Fondo del mapa. openstreetmap.org rechaza páginas abiertas como archivo local (sin Referer) y CARTO ahora
+// exige clave, así que se usa Esri (gris claro, para que resalten las líneas) con su mapa de calles de respaldo.
+// Sin internet el mapa sigue funcionando, solo sin fondo.
+const FONDOS = [
+  ["https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 16, attribution: "Fondo © Esri · Datos © OpenStreetMap" }],
+  ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 18, attribution: "Fondo © Esri · Datos © OpenStreetMap" }],
+];
+function agregarFondo(mapa, i = 0) {
+  if (i >= FONDOS.length) return;
+  const capa = L.tileLayer(...FONDOS[i]).addTo(mapa);
+  let errores = 0;
+  capa.on("tileerror", () => { if (++errores === 4) { mapa.removeLayer(capa); agregarFondo(mapa, i + 1); } });
+}
+
+function crearMapa(id, { suave = false } = {}) {
+  const mapa = L.map(id, { preferCanvas: true, zoomSnap: 0.25 });
+  agregarFondo(mapa);
+  mapa.fitBounds(BOUNDS, { padding: [10, 10] });
+  const lineas = L.layerGroup().addTo(mapa);
+  for (const l of DATOS.lineas) {
+    L.polyline(l.estaciones.map((n) => [EST[n].lat, EST[n].lon]), {
+      color: l.color, weight: suave ? 3 : 5, opacity: suave ? 0.35 : 0.85,
+    }).bindTooltip(l.nombre, { sticky: true }).addTo(lineas);
+  }
+  for (const [u, v] of DATOS.pasillos) {
+    L.polyline([[EST[u].lat, EST[u].lon], [EST[v].lat, EST[v].lon]], { color: "#64748B", weight: 3, dashArray: "4 5" })
+      .bindTooltip(`Pasillo peatonal: ${esc(u)} ↔ ${esc(v)}`).addTo(lineas);
+  }
+  return mapa;
+}
+
+function popupEstacion(e, botones = true) {
+  const lineas = e.lineas.map((l) => `<span class="insignia" style="background:${colorLinea(l)};color:${colorTextoInsignia(l)}">${textoInsignia(l)}</span>`).join(" ");
+  return `<div class="popup"><b>${esc(e.n)}</b><div style="margin:4px 0">${lineas}</div>
+    Grado: <b>${e.grado}</b> · Intermediación: <b>${e.bc.toFixed(4)}</b><br>
+    Cercanía: <b>${e.cc.toFixed(4)}</b> · Comunidad: <b>C${e.com + 1}</b><br>
+    ${e.ap ? `<span style="color:#DC2626"><b>Punto de articulación</b>: su cierre aísla ${e.aisla} estaciones</span>` : "No es punto de articulación"}
+    ${botones ? `<div class="botones"><button data-accion="origen" data-n="${esc(e.n)}">Origen</button><button data-accion="destino" data-n="${esc(e.n)}">Destino</button></div>` : ""}</div>`;
+}
+
+function dibujarEstaciones(mapa, { radio = (e) => (e.transbordo ? 6 : 4), relleno = () => "#fff", borde = () => "#1E2433", popup = (e) => popupEstacion(e, false), alClic = null } = {}) {
+  const capa = L.layerGroup().addTo(mapa);
+  for (const e of DATOS.estaciones) {
+    const m = L.circleMarker([e.lat, e.lon], { radius: radio(e), color: borde(e), weight: 1.5, fillColor: relleno(e), fillOpacity: 1 })
+      .bindTooltip(esc(e.n));
+    if (popup) m.bindPopup(popup(e));
+    if (alClic) m.on("click", () => alClic(e));
+    m.addTo(capa);
+  }
+  return capa;
+}
+
+// Leyenda de líneas
+$("#leyenda-lineas").innerHTML = DATOS.lineas.map((l) => `<span><i style="background:${l.color}"></i>${esc(l.nombre)}</span>`).join("")
+  + `<span><i style="background:#64748B"></i>pasillo peatonal</span><span><i class="punto" style="background:#fff;border:2px solid #1E2433"></i>transbordo</span>`;
+
+// ======================================================================== 2 · rutas
+const mapaRutas = crearMapa("mapa-rutas");
+dibujarEstaciones(mapaRutas, { popup: (e) => popupEstacion(e, true) });
+const capaRuta = L.layerGroup().addTo(mapaRutas);
+let criterio = "tiempo";
+
+mapaRutas.on("popupopen", (ev) => {
+  ev.popup.getElement().querySelectorAll("button[data-accion]").forEach((b) =>
+    b.addEventListener("click", () => {
+      $("#" + b.dataset.accion).value = b.dataset.n;
+      mapaRutas.closePopup();
+      if ($("#origen").value && $("#destino").value) calcularRuta();
+    }));
+});
+
+document.querySelectorAll("#criterio button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#criterio button").forEach((x) => x.classList.remove("activo"));
+  b.classList.add("activo"); criterio = b.dataset.c; calcularRuta();
+}));
+$("#invertir").addEventListener("click", () => { [$("#origen").value, $("#destino").value] = [$("#destino").value, $("#origen").value]; calcularRuta(); });
+$("#calcular").addEventListener("click", calcularRuta);
+["#origen", "#destino"].forEach((s) => $(s).addEventListener("keydown", (ev) => { if (ev.key === "Enter") calcularRuta(); }));
+
+function calcularRuta() {
+  const o = buscarEstacion($("#origen").value), d = buscarEstacion($("#destino").value);
+  const salida = $("#resultado-ruta");
+  if (!o || !d) { salida.innerHTML = `<div class="nota alerta">Estación no encontrada. Elige una de la lista.</div>`; return; }
+  $("#origen").value = o; $("#destino").value = d;
+  capaRuta.clearLayers();
+  if (o === d) { salida.innerHTML = `<div class="nota">Origen y destino son la misma estación.</div>`; return; }
+
+  const res = dijkstra(adjServicios(o, d, criterio), "ORIGEN", "DESTINO");
+  const r = describir(res.camino);
+  const nombresCriterio = { tiempo: "menor tiempo", transbordos: "menos transbordos", paradas: "menos paradas" };
+
+  let html = `<h3 style="margin-top:0">${esc(o)} → ${esc(d)}</h3><div class="pregunta">Criterio: ${nombresCriterio[criterio]}</div>
+    <div class="resumen-ruta">
+      <div><b>${r.total.toFixed(1)}</b><span>min en total</span></div>
+      <div><b>${r.paradas}</b><span>paradas</span></div>
+      <div><b>${r.transbordos}</b><span>transbordos</span></div>
+      <div><b>${r.distancia.toFixed(1)}</b><span>km</span></div>
+    </div><ul class="itinerario">`;
+  for (const s of r.segmentos) {
+    const n = s.estaciones.length - 1;
+    html += `<li><span class="insignia" style="background:${colorLinea(s.linea)};color:${colorTextoInsignia(s.linea)}">${textoInsignia(s.linea)}</span>
+      <div><b>${esc(s.estaciones[0])}</b> → <b>${esc(s.estaciones[n])}</b><br>
+      <small>${s.linea === PASILLO ? "Pasillo peatonal de transbordo" : `${n} parada${n === 1 ? "" : "s"} · ${s.estaciones.slice(1, -1).map(esc).join(", ") || "directo"}`}</small></div></li>`;
+  }
+  html += `</ul><p><small>Tiempo en tren: ${r.viaje.toFixed(1)} min · transbordos y caminatas: ${r.tiempoTransb.toFixed(1)} min · nodos explorados en G<sub>L</sub>: ${res.explorados}</small></p>`;
+  salida.innerHTML = html;
+
+  for (const s of r.segmentos) {
+    const coords = s.estaciones.map((n) => [EST[n].lat, EST[n].lon]);
+    L.polyline(coords, { color: "#0F172A", weight: 11, opacity: 0.35 }).addTo(capaRuta);
+    L.polyline(coords, { color: colorLinea(s.linea), weight: 7, dashArray: s.linea === PASILLO ? "4 6" : null }).addTo(capaRuta);
+    for (const n of s.estaciones) L.circleMarker([EST[n].lat, EST[n].lon], { radius: 5, color: "#0F172A", weight: 2, fillColor: "#fff", fillOpacity: 1 }).bindTooltip(esc(n)).addTo(capaRuta);
+  }
+  L.circleMarker([EST[o].lat, EST[o].lon], { radius: 10, color: "#fff", weight: 3, fillColor: "#16A34A", fillOpacity: 1 }).bindTooltip("Origen: " + esc(o), { permanent: true, direction: "top" }).addTo(capaRuta);
+  L.circleMarker([EST[d].lat, EST[d].lon], { radius: 10, color: "#fff", weight: 3, fillColor: "#DC2626", fillOpacity: 1 }).bindTooltip("Destino: " + esc(d), { permanent: true, direction: "top" }).addTo(capaRuta);
+  mapaRutas.fitBounds(L.latLngBounds(r.segmentos.flatMap((s) => s.estaciones.map((n) => [EST[n].lat, EST[n].lon]))), { paddingTopLeft: [120, 50], paddingBottomRight: [120, 40] });
+
+  compararAlgoritmos(o, d);
+}
+
+function compararAlgoritmos(o, d) {
+  const costo = (c) => c.slice(1).reduce((acc, v, i) => acc + TIEMPO_G.get(c[i] + "\u0001" + v), 0);
+  const destino = EST[d], vel = DATOS.velocidad;
+  const medir = (f) => { const t0 = performance.now(); let r; for (let i = 0; i < 20; i++) r = f(); return [r, (performance.now() - t0) / 20]; };
+  const filas = [];
+  let [r, ms] = medir(() => bfs(ADJ_G, o, d));
+  filas.push(["BFS", "paradas", r.camino.length - 1, costo(r.camino), r.explorados, ms]);
+  [r, ms] = medir(() => dijkstra(ADJ_G, o, d));
+  filas.push(["Dijkstra", "tiempo", r.camino.length - 1, r.costo, r.explorados, ms]);
+  [r, ms] = medir(() => dijkstra(ADJ_G, o, d, (n) => haversine(EST[n], destino) / vel * 60));
+  filas.push(["A*", "tiempo", r.camino.length - 1, r.costo, r.explorados, ms]);
+  $("#tabla-algoritmos").innerHTML = `<table class="tabla"><thead><tr><th>Algoritmo</th><th>Minimiza</th><th>Paradas</th><th>Tiempo (min)*</th><th>Nodos explorados</th><th>ms</th></tr></thead><tbody>`
+    + filas.map((f) => `<tr><td><b>${f[0]}</b></td><td>${f[1]}</td><td>${f[2]}</td><td>${f[3].toFixed(2)}</td><td>${f[4]}</td><td>${f[5].toFixed(3)}</td></tr>`).join("")
+    + `</tbody></table><small>* Sobre G, sin contar transbordos. Ejecutado en tu navegador (JavaScript), con la misma lógica que <code>rutas.py</code>.</small>`;
+}
+
+// ======================================================================== 3 · centralidad
+(() => {
+  const mapa = crearMapa("mapa-centralidad", { suave: true });
+  const max = Math.max(...DATOS.estaciones.map((e) => e.bc));
+  const escala = (v) => { const t = v / max; return `hsl(${50 - 50 * t}, 95%, ${60 - 25 * t}%)`; };
+  const orden = [...DATOS.estaciones].sort((a, b) => a.bc - b.bc);
+  for (const e of orden) {
+    L.circleMarker([e.lat, e.lon], { radius: 2.5 + 10 * Math.sqrt(e.bc / max), color: "#1E2433", weight: 0.8, fillColor: escala(e.bc), fillOpacity: 0.9 })
+      .bindTooltip(`${esc(e.n)} · ${e.bc.toFixed(4)}`).bindPopup(popupEstacion(e, false)).addTo(mapa);
+  }
+})();
+
+// ======================================================================== 4 · simulador de cierres
+const mapaElim = crearMapa("mapa-eliminar", { suave: true });
+const cerradas = new Set();
+const capaSim = L.layerGroup().addTo(mapaElim);
+
+function componentes(excluir) {
+  const visto = new Set(), comps = [];
+  for (const n of NOMBRES) {
+    if (excluir.has(n) || visto.has(n)) continue;
+    const comp = [n]; visto.add(n);
+    for (let i = 0; i < comp.length; i++)
+      for (const [v] of ADJ_G.get(comp[i])) if (!excluir.has(v) && !visto.has(v)) { visto.add(v); comp.push(v); }
+    comps.push(comp);
+  }
+  return comps.sort((a, b) => b.length - a.length);
+}
+
+function eficiencia(excluir) {
+  // Igual que nx.global_efficiency: promedio de 1/d(u,v) en saltos sobre los vértices restantes
+  const vivos = NOMBRES.filter((n) => !excluir.has(n)), n = vivos.length;
+  let suma = 0;
+  for (const s of vivos) {
+    const dist = new Map([[s, 0]]), cola = [s];
+    for (let i = 0; i < cola.length; i++) {
+      const u = cola[i];
+      for (const [v] of ADJ_G.get(u)) if (!excluir.has(v) && !dist.has(v)) { dist.set(v, dist.get(u) + 1); cola.push(v); }
+    }
+    for (const [, d] of dist) if (d > 0) suma += 1 / d;
+  }
+  return n > 1 ? suma / (n * (n - 1)) : 0;
+}
+const EFICIENCIA_BASE = eficiencia(new Set());
+
+function actualizarSimulador() {
+  capaSim.clearLayers();
+  const comps = componentes(cerradas);
+  const gigante = new Set(comps[0] || []);
+  const aisladas = NOMBRES.filter((n) => !cerradas.has(n) && !gigante.has(n));
+  const efic = eficiencia(cerradas);
+  for (const e of DATOS.estaciones) {
+    let estilo;
+    if (cerradas.has(e.n)) estilo = { radius: 9, color: "#fff", weight: 2, fillColor: "#0F172A" };
+    else if (!gigante.has(e.n)) estilo = { radius: 6, color: "#7F1D1D", weight: 1.5, fillColor: "#DC2626" };
+    else estilo = { radius: e.transbordo ? 5 : 3.5, color: "#1E2433", weight: 1, fillColor: "#fff" };
+    L.circleMarker([e.lat, e.lon], { ...estilo, fillOpacity: 1 })
+      .bindTooltip(esc(e.n) + (cerradas.has(e.n) ? " (cerrada, clic para reabrir)" : " (clic para cerrar)"))
+      .on("click", () => { cerradas.has(e.n) ? cerradas.delete(e.n) : cerradas.add(e.n); actualizarSimulador(); })
+      .addTo(capaSim);
+  }
+  const perdida = (1 - efic / EFICIENCIA_BASE) * 100;
+  $("#sim-resultado").innerHTML = cerradas.size === 0
+    ? `<div class="nota">Haz clic en una estación del mapa o usa los botones para simular su cierre.</div>
+       <p>Red completa: 1 componente, ${NOMBRES.length} estaciones, eficiencia global ${EFICIENCIA_BASE.toFixed(4)}.</p>`
+    : `<h3 style="margin-top:0">Estaciones cerradas</h3><div class="chips">${[...cerradas].map((n) => `<span class="chip">${esc(n)}</span>`).join("")}</div>
+       <div class="resumen-ruta">
+         <div><b>${comps.length}</b><span>componentes conexas</span></div>
+         <div><b>${(100 * gigante.size / NOMBRES.length).toFixed(1)}%</b><span>en la componente gigante</span></div>
+         <div><b>${aisladas.length}</b><span>estaciones incomunicadas</span></div>
+         <div><b>${perdida.toFixed(1)}%</b><span>pérdida de eficiencia</span></div>
+       </div>
+       ${aisladas.length ? `<div class="nota alerta"><b>Quedan fuera de la red principal:</b><div class="chips">${aisladas.map((n) => `<span class="chip rojo">${esc(n)}</span>`).join("")}</div></div>`
+         : `<div class="nota ok">La red sigue conexa: hay rutas alternativas, aunque más largas.</div>`}`;
+}
+$("#sim-agregar").addEventListener("click", () => { const n = buscarEstacion($("#sim-estacion").value); if (n) { cerradas.add(n); $("#sim-estacion").value = ""; actualizarSimulador(); } });
+$("#sim-estacion").addEventListener("keydown", (ev) => { if (ev.key === "Enter") $("#sim-agregar").click(); });
+$("#sim-reset").addEventListener("click", () => { cerradas.clear(); actualizarSimulador(); });
+document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
+  cerradas.clear();
+  if (b.dataset.preset === "top5") [...DATOS.estaciones].sort((a, c) => c.bc - a.bc).slice(0, 5).forEach((e) => cerradas.add(e.n));
+  else cerradas.add(b.dataset.preset);
+  actualizarSimulador();
+}));
+actualizarSimulador();
+
+// ======================================================================== 5 · puntos de fallo
+(() => {
+  const mapa = L.map("mapa-fallos", { preferCanvas: true });
+  agregarFondo(mapa);
+  mapa.fitBounds(BOUNDS, { padding: [10, 10] });
+  const puente = new Set(DATOS.puentes.map(([u, v]) => u + "\u0001" + v));
+  for (const [u, v] of DATOS.aristasG) {
+    const esPuente = puente.has(u + "\u0001" + v) || puente.has(v + "\u0001" + u);
+    L.polyline([[EST[u].lat, EST[u].lon], [EST[v].lat, EST[v].lon]], { color: esPuente ? "#DC2626" : "#94A3B8", weight: esPuente ? 4 : 3 }).addTo(mapa);
+  }
+  dibujarEstaciones(mapa, {
+    radio: (e) => (e.ap ? 4 + Math.min(10, Math.sqrt(e.aisla) * 1.6) : 3),
+    relleno: (e) => (e.ap ? "#DC2626" : "#fff"), borde: (e) => (e.ap ? "#7F1D1D" : "#475569"),
+  });
+})();
+
+// ======================================================================== 9 · optimización
+const mapaOpt = crearMapa("mapa-opt", { suave: true });
+const capaOpt = L.layerGroup().addTo(mapaOpt);
+const PALETA_COLOREO = ["#2563EB", "#F59E0B", "#DC2626", "#16A34A", "#9333EA"];
+
+const VISTAS = {
+  cartero() {
+    const veces = new Map();
+    for (const [u, v] of DATOS.cartero) { const k = [u, v].sort().join("\u0001"); veces.set(k, (veces.get(k) || 0) + 1); }
+    for (const [k, n] of veces) {
+      const [u, v] = k.split("\u0001");
+      L.polyline([[EST[u].lat, EST[u].lon], [EST[v].lat, EST[v].lon]], { color: "#EA580C", weight: 5 + 3 * (n - 1), opacity: 0.9 })
+        .bindTooltip(`${esc(u)} – ${esc(v)}: se recorre ${n + 1} veces`).addTo(capaOpt);
+    }
+    dibujarEstaciones(mapaOpt, { radio: (e) => (e.grado % 2 ? 6 : 3), relleno: (e) => (e.grado % 2 ? "#EA580C" : "#fff") }).addTo(capaOpt);
+    $("#leyenda-opt").innerHTML = `<span><i style="background:#EA580C"></i>tramo que se repite</span><span><i class="punto" style="background:#EA580C"></i>vértice de grado impar</span>`;
+    $("#texto-opt").innerHTML = `<h3 style="margin-top:0">Cartero chino</h3><p>En naranja, los tramos que el tren de inspección debe recorrer más de una vez. Son los caminos que unen las parejas de vértices impares del emparejamiento de peso mínimo.</p>
+      <p>Parejas emparejadas (${DATOS.parejas.length}):</p><div class="chips">${DATOS.parejas.map(([a, b]) => `<span class="chip">${esc(a)} ↔ ${esc(b)}</span>`).join("")}</div>`;
+  },
+  tramos() {
+    const dibujar = (lista, color) => lista.forEach((t, i) => {
+      L.polyline([[EST[t.u].lat, EST[t.u].lon], [EST[t.v].lat, EST[t.v].lon]], { color, weight: 6, dashArray: "8 6" })
+        .bindTooltip(`${i + 1}. ${esc(t.u)} – ${esc(t.v)} · ${t.km.toFixed(2)} km · +${t.efic.toFixed(3)}% eficiencia · −${t.ap} puntos de articulación`, { sticky: true }).addTo(capaOpt);
+      [t.u, t.v].forEach((n) => L.circleMarker([EST[n].lat, EST[n].lon], { radius: 6, color, weight: 2, fillColor: "#fff", fillOpacity: 1 }).bindTooltip(esc(n)).addTo(capaOpt));
+    });
+    dibujar(DATOS.tramosEficiencia, "#2563EB");
+    dibujar(DATOS.tramosArticulacion, "#9333EA");
+    $("#leyenda-opt").innerHTML = `<span><i style="background:#2563EB"></i>top 5 por eficiencia</span><span><i style="background:#9333EA"></i>top 5 por puntos de fallo eliminados</span>`;
+    const lista = (l) => l.map((t, i) => `<li>${esc(t.u)} – ${esc(t.v)} <small>(${t.km.toFixed(2)} km, +${t.efic.toFixed(3)}%, −${t.ap} p.a.)</small></li>`).join("");
+    $("#texto-opt").innerHTML = `<h3 style="margin-top:0">Tramos propuestos</h3><p><b style="color:#2563EB">Mejoran la eficiencia</b> (acortan viajes en el centro):</p><ol>${lista(DATOS.tramosEficiencia)}</ol>
+      <p><b style="color:#9333EA">Eliminan puntos únicos de fallo</b> (cierran ciclos entre ramales):</p><ol>${lista(DATOS.tramosArticulacion)}</ol>`;
+  },
+  coloreo() {
+    dibujarEstaciones(mapaOpt, { radio: () => 5.5, relleno: (e) => PALETA_COLOREO[e.color], borde: () => "#1E2433" }).addTo(capaOpt);
+    const k = Math.max(...DATOS.estaciones.map((e) => e.color)) + 1;
+    const conteo = Array.from({ length: k }, (_, c) => DATOS.estaciones.filter((e) => e.color === c).length);
+    $("#leyenda-opt").innerHTML = conteo.map((n, c) => `<span><i class="punto" style="background:${PALETA_COLOREO[c]}"></i>noche ${c + 1} (${n})</span>`).join("");
+    $("#texto-opt").innerHTML = `<h3 style="margin-top:0">Coloreo con ${k} colores</h3><p>Cada color es una noche de mantenimiento. Ninguna arista une dos estaciones del mismo color, así que nunca cierran dos vecinas a la vez.</p>
+      <p>Haz zoom en el triángulo <b>${DATOS.clique.map(esc).join(" – ")}</b>: sus tres estaciones son vecinas entre sí y necesitan tres colores distintos, por eso χ(G) ≥ 3.</p>`;
+  },
+  mst() {
+    const enMst = new Set(DATOS.mst.map(([u, v]) => [u, v].sort().join("\u0001")));
+    for (const [u, v] of DATOS.aristasG) {
+      const dentro = enMst.has([u, v].sort().join("\u0001"));
+      L.polyline([[EST[u].lat, EST[u].lon], [EST[v].lat, EST[v].lon]], { color: dentro ? "#0F172A" : "#DC2626", weight: dentro ? 3 : 5, opacity: dentro ? 0.6 : 0.95 }).addTo(capaOpt);
+    }
+    $("#leyenda-opt").innerHTML = `<span><i style="background:#0F172A"></i>árbol de expansión mínima (Kruskal)</span><span><i style="background:#DC2626"></i>aristas fuera del árbol (cierran ciclos)</span>`;
+    $("#texto-opt").innerHTML = `<h3 style="margin-top:0">Árbol de expansión mínima</h3><p>Con ${DATOS.mst.length} aristas (|V| − 1) se mantienen conectadas todas las estaciones con el menor tiempo total de vía.
+      Las ${DATOS.aristasG.length - DATOS.mst.length} aristas rojas son la redundancia: cada una cierra un ciclo y ofrece una ruta alternativa (número ciclomático).</p>`;
+  },
+};
+document.querySelectorAll("#vista-opt button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#vista-opt button").forEach((x) => x.classList.remove("activo"));
+  b.classList.add("activo"); capaOpt.clearLayers(); VISTAS[b.dataset.v]();
+}));
+VISTAS.cartero();
+
+// ======================================================================== 10 · comunidades
+(() => {
+  const mapa = crearMapa("mapa-comunidades", { suave: true });
+  const n = DATOS.numComunidades;
+  const color = (c) => `hsl(${(c * 360 / n * 7) % 360}, 70%, ${c % 2 ? 42 : 55}%)`;
+  dibujarEstaciones(mapa, { radio: () => 6, relleno: (e) => color(e.com), borde: () => "#1E2433" });
+})();
+
+// ======================================================================== gráficos
+for (const [id, fig] of Object.entries(GRAFICOS)) {
+  const el = document.getElementById("g-" + id);
+  if (el) Plotly.newPlot(el, fig.data, fig.layout, { responsive: true, displaylogo: false });
+}
+
+// Índice activo al desplazarse
+const enlaces = [...document.querySelectorAll("nav.indice a")];
+const observador = new IntersectionObserver((entradas) => {
+  for (const en of entradas) if (en.isIntersecting) enlaces.forEach((a) => a.classList.toggle("activo", a.getAttribute("href") === "#" + en.target.id));
+}, { rootMargin: "-40% 0px -55% 0px" });
+document.querySelectorAll("section.bloque").forEach((s) => observador.observe(s));
+
+calcularRuta();
+</script>
+{% endraw %}
+</body>
+</html>

@@ -51,6 +51,20 @@ RELACIONES = {
     "R": [61836],
 }
 
+# Transbordos oficiales entre estaciones con distinto nombre, unidas por pasillo peatonal
+PASILLOS = [
+    ("Noviciado", "Plaza de España"),
+    ("Embajadores", "Acacias"),
+]
+
+# La línea 10 opera en dos servicios: hay que cambiar de tren en Tres Olivos
+SERVICIOS = {
+    "10": {
+        "10A": ("Puerta del Sur", "Tres Olivos"),
+        "10B": ("Tres Olivos", "Hospital Infanta Sofía"),
+    },
+}
+
 NOMBRES_LINEA = {
     "R": "Ramal Ópera - Príncipe Pío",
 }
@@ -64,7 +78,7 @@ def descargar():
             req = urllib.request.Request(url, data=datos, headers={"User-Agent": "proyecto-discretas/1.0"})
             with urllib.request.urlopen(req, timeout=180) as resp:
                 contenido = json.loads(resp.read().decode())
-            ARCHIVO_CRUDO.write_text(json.dumps(contenido, ensure_ascii=False))
+            ARCHIVO_CRUDO.write_text(json.dumps(contenido, ensure_ascii=False), encoding="utf-8")
             return contenido
         except Exception as e:
             print(f"  Falló: {e}")
@@ -100,12 +114,18 @@ def construir_dataset(crudo):
         color = rel0["tags"].get("colour", "#888888")
         if codigo == "R":
             color = "#FFFFFF"
+        servicios = {}
+        for servicio, (a, b) in SERVICIOS.get(codigo, {}).items():
+            i, j = sorted((paradas.index(a), paradas.index(b)))
+            servicios[servicio] = paradas[i:j + 1]
+
         lineas.append({
             "codigo": codigo,
             "nombre": NOMBRES_LINEA.get(codigo, f"Línea {codigo}"),
             "color": color.upper(),
             "circular": circular,
             "estaciones": paradas,
+            "servicios": servicios,
         })
 
     estaciones = []
@@ -122,16 +142,17 @@ def construir_dataset(crudo):
         "num_estaciones": len(estaciones),
         "lineas": lineas,
         "estaciones": estaciones,
+        "pasillos": [list(p) for p in PASILLOS],
     }
 
 
 def main():
     if "--offline" in sys.argv and ARCHIVO_CRUDO.exists():
-        crudo = json.loads(ARCHIVO_CRUDO.read_text())
+        crudo = json.loads(ARCHIVO_CRUDO.read_text(encoding="utf-8"))
     else:
         crudo = descargar()
     dataset = construir_dataset(crudo)
-    ARCHIVO_SALIDA.write_text(json.dumps(dataset, ensure_ascii=False, indent=2))
+    ARCHIVO_SALIDA.write_text(json.dumps(dataset, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Dataset guardado en {ARCHIVO_SALIDA}")
     print(f"  Líneas: {dataset['num_lineas']}  Estaciones: {dataset['num_estaciones']}")
     for l in dataset["lineas"]:

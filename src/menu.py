@@ -10,8 +10,11 @@ import pandas as pd
 
 from datos import CargadorDatos
 from grafo import ConstructorGrafo
+import complejidad
 from ia import ClasificadorCriticidad, ModeloTiempoViaje
 from metricas import CalculadorMetricas
+from modelos_nulos import ComparadorModelosNulos
+from optimizacion import CarteroChino, ColoreoGrafo, PlanificadorExpansion
 from robustez import AnalizadorRobustez
 from rutas import PlanificadorRutas
 from visualizacion import CARPETA_RESULTADOS, Visualizador
@@ -69,6 +72,9 @@ class ControladorSistema:
     @staticmethod
     def imprimir_ruta(ruta: dict):
         for i, s in enumerate(ruta["segmentos"], 1):
+            if s["linea"] == "pasillo":
+                print(f"   {i}. A pie     {s['estaciones'][0]} → {s['estaciones'][-1]} (pasillo de transbordo)")
+                continue
             print(f"   {i}. Línea {s['linea']:<3} {s['estaciones'][0]} → {s['estaciones'][-1]} "
                   f"({len(s['estaciones']) - 1} paradas)")
         print(f"   Paradas: {ruta['paradas']} | Transbordos: {ruta['transbordos']} | "
@@ -80,7 +86,7 @@ class ControladorSistema:
         titulo("1. ESTRUCTURA DEL GRAFO")
         for k, v in ConstructorGrafo.resumen(self.G).items():
             print(f"   {k:<24} {v}")
-        print(f"\n   Grafo de líneas (estación, línea): {self.GL.number_of_nodes()} vértices, "
+        print(f"\n   Grafo de servicios (estación, servicio): {self.GL.number_of_nodes()} vértices, "
               f"{self.GL.number_of_edges()} aristas")
         print("\n   Líneas:")
         for l in self.lineas:
@@ -89,12 +95,17 @@ class ControladorSistema:
         for v, w in self.planificador.adj_tiempo["Sol"]:
             print(f"     Sol -- {v:<20} {w:.2f} min")
         self.visual.red(titulo="Red del Metro de Madrid (G)", etiquetas=True, archivo="red_metro.png")
+        self.visual.red_centro(archivo="red_centro.png")
         self.abrir("red_metro.png")
+        self.abrir("red_centro.png")
 
     def ruta(self):
         titulo("2. RUTA MÁS CORTA ENTRE DOS ESTACIONES")
         o = self.pedir_estacion("   Estación de origen: ")
         d = self.pedir_estacion("   Estación de destino: ")
+        if o == d:
+            print(f"   Origen y destino son la misma estación ({o}): 0 paradas, 0 min.")
+            return
 
         print("\n   [A] Menor tiempo (Dijkstra sobre grafo de líneas, transbordo = 5 min)")
         rapida, _ = self.planificador.mas_rapida(o, d)
@@ -199,11 +210,54 @@ class ControladorSistema:
             real = self.planificador.mas_rapida(o, d)[0]["tiempo_total_min"]
             print(f"   Grafo (Dijkstra): {real} min | IA: {self.modelo_tiempo.predecir(o, d)}")
 
+    def optimizacion(self):
+        titulo("11. OPTIMIZACIÓN COMBINATORIA Y COMUNIDADES")
+        cc = CarteroChino(self.G).resolver("Sol")
+        print("   [Cartero chino] recorrido mínimo que pasa por todos los tramos")
+        print(f"     Vértices de grado impar: {cc['vertices_impares']} | tramos repetidos: {len(cc['aristas_duplicadas'])}")
+        print(f"     Red: {cc['costo_red_min']} min + extra {cc['costo_extra_min']} min = {cc['costo_total_min']} min "
+              f"({cc['costo_total_min'] / 60:.1f} h)")
+
+        print("\n   [Tramos nuevos] evaluando conexiones candidatas (≈10 s)...")
+        exp = PlanificadorExpansion(self.G).evaluar()
+        cols = ["origen", "destino", "distancia_km", "ganancia_eficiencia_%", "puntos_articulacion_eliminados"]
+        print("     Mayor ganancia de eficiencia:")
+        print(exp.head(5)[cols].to_string(index=False))
+        print("     Más puntos de articulación eliminados:")
+        print(exp.sort_values("puntos_articulacion_eliminados", ascending=False).head(5)[cols].to_string(index=False))
+
+        col = ColoreoGrafo(self.G).resolver()
+        print(f"\n   [Coloreo] colores por estrategia: {col['colores_por_estrategia']}")
+        print(f"     χ(G) = {col['colores']} (cota inferior: clique {col['clique_maxima']}) → óptimo: {col['es_optimo']}")
+
+        com = self.metricas.comunidades()
+        print(f"\n   [Comunidades Louvain] {com['numero']} comunidades, modularidad Q = {com['modularidad']}")
+        print(f"     Tamaños: {com['tamanos']}")
+
+    def modelos_nulos(self):
+        titulo("12. RED REAL VS REDES ALEATORIAS")
+        print("   Generando 20 redes de cada modelo nulo...")
+        print(ComparadorModelosNulos(self.G).comparar().T.to_string())
+
+    def complejidad(self):
+        titulo("13. COMPLEJIDAD EMPÍRICA")
+        print("   Midiendo BFS, Dijkstra y A* en redes de 250 a 16 000 vértices (≈10 s)...")
+        df = complejidad.medir()
+        print(df.pivot(index="vertices", columns="algoritmo", values="tiempo_ms").to_string())
+        print(f"\n   Pendiente log-log (≈1 = lineal):\n{complejidad.ajuste_pendiente(df).to_string()}")
+
+    def reporte(self):
+        titulo("14. REPORTE HTML INTERACTIVO")
+        from reporte import GeneradorReporte
+        ruta = GeneradorReporte().generar()
+        self.abrir(ruta.name)
+
     def generar_todo(self):
         titulo("10. GENERANDO TODAS LAS VISUALIZACIONES")
         v = self.visual
         df = self.metricas.centralidades()
         v.red(titulo="Red del Metro de Madrid", etiquetas=True, archivo="red_metro.png")
+        v.red_centro(archivo="red_centro.png")
         v.distribucion_grados(archivo="distribucion_grados.png")
         v.top_centralidad(df, archivo="top_intermediacion.png")
         v.mapa_calor_centralidad(df["intermediacion"].to_dict(), "Centralidad de intermediación",
@@ -225,13 +279,21 @@ class ControladorSistema:
             "8": ("Fallos aleatorios vs ataques dirigidos", self.ataques),
             "9": ("Inteligencia artificial (modelos predictivos)", self.inteligencia),
             "10": ("Generar todas las visualizaciones", self.generar_todo),
+            "11": ("Optimización combinatoria y comunidades", self.optimizacion),
+            "12": ("Red real vs redes aleatorias", self.modelos_nulos),
+            "13": ("Complejidad empírica de los algoritmos", self.complejidad),
+            "14": ("Reporte HTML interactivo (todos los resultados)", self.reporte),
         }
         while True:
             titulo("METRO DE MADRID — ANÁLISIS CON TEORÍA DE GRAFOS")
             for k, (nombre, _) in opciones.items():
                 print(f"   {k:>2}. {nombre}")
             print("    0. Salir")
-            op = input("\n   Opción: ").strip()
+            try:
+                op = input("\n   Opción: ").strip()
+            except (KeyboardInterrupt, EOFError):
+                op = "0"
+                print()
             if op == "0":
                 break
             if op in opciones:
@@ -239,5 +301,7 @@ class ControladorSistema:
                     opciones[op][1]()
                 except (KeyboardInterrupt, EOFError):
                     print("\n   Operación cancelada")
+                except Exception as e:
+                    print(f"\n   Error: {e}")
             else:
                 print("   Opción no válida")

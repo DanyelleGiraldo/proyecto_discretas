@@ -118,6 +118,25 @@ class CalculadorMetricas:
             "porcentaje_redundancia": round((total - mst) / total * 100, 2),
         }
 
+    # ---------- Comunidades ----------
+
+    def comunidades(self, semilla: int = 42) -> Dict:
+        """
+        Louvain: agrupa estaciones maximizando la modularidad
+        Q = (1/2m) * sum_ij [A_ij - k_i k_j / 2m] * delta(c_i, c_j),
+        es decir, más aristas dentro de cada grupo de las que habría al azar.
+        """
+        grupos = nx.community.louvain_communities(self.G, seed=semilla)
+        grupos = sorted(grupos, key=len, reverse=True)
+        asignacion = {n: i for i, g in enumerate(grupos) for n in g}
+        return {
+            "numero": len(grupos),
+            "modularidad": round(nx.community.modularity(self.G, grupos), 4),
+            "tamanos": [len(g) for g in grupos],
+            "grupos": [sorted(g) for g in grupos],
+            "asignacion": asignacion,
+        }
+
     # ---------- Ley de potencias (red libre de escala) ----------
 
     def ajuste_ley_potencias(self) -> Dict:

@@ -38,7 +38,12 @@ class AnalizadorRobustez:
         }
 
     def eliminar_estaciones(self, estaciones: Iterable[str]) -> Dict:
-        estaciones = list(estaciones)
+        estaciones = list(dict.fromkeys(estaciones))  # sin repetidos, conserva el orden
+        desconocidas = [e for e in estaciones if e not in self.G]
+        if desconocidas:
+            raise ValueError(f"Estaciones inexistentes: {desconocidas}")
+        if len(estaciones) >= self.G.number_of_nodes() - 1:
+            raise ValueError("Se deben conservar al menos dos estaciones")
         H = self.G.copy()
         H.remove_nodes_from(estaciones)
         antes = self.estado(self.G, self.G.number_of_nodes())
@@ -59,6 +64,9 @@ class AnalizadorRobustez:
 
     def eliminar_tramos(self, tramos: Iterable[tuple]) -> Dict:
         tramos = list(tramos)
+        desconocidos = [t for t in tramos if not self.G.has_edge(*t)]
+        if desconocidos:
+            raise ValueError(f"Tramos inexistentes: {desconocidos}")
         H = self.G.copy()
         H.remove_edges_from(tramos)
         return {

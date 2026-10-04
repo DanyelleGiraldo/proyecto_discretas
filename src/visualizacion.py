@@ -39,7 +39,9 @@ class Visualizador:
     # ---------- Red completa ----------
 
     def red(self, ruta: List[str] = None, resaltar: Iterable[str] = None, eliminadas: Iterable[str] = None,
-            titulo: str = "Red del Metro de Madrid", etiquetas: bool = False, archivo: str = None):
+            titulo: str = "Red del Metro de Madrid", etiquetas: bool = False, archivo: str = None,
+            zona: tuple = None):
+        """zona = (lon_min, lon_max, lat_min, lat_max) para ampliar una parte de la red."""
         G = self.G
         fig, ax = plt.subplots(figsize=(13, 13))
         for linea in self.lineas:
@@ -70,18 +72,39 @@ class Visualizador:
             nx.draw_networkx_labels(G, self.pos, labels={ruta[0]: ruta[0], ruta[-1]: ruta[-1]},
                                     font_size=10, font_weight="bold", ax=ax,
                                     verticalalignment="bottom")
+        pasillos = [(u, v) for u, v, d in G.edges(data=True) if d.get("pasillo")]
+        nx.draw_networkx_edges(G, self.pos, edgelist=pasillos, edge_color="#64748B", width=2.5, style="dashed", ax=ax)
+
         if etiquetas:
-            principales = {n: n for n in transbordos if len(G.nodes[n]["lineas"]) >= 3}
-            nx.draw_networkx_labels(G, self.pos, labels=principales, font_size=7, ax=ax,
-                                    verticalalignment="bottom")
+            if zona:
+                lon0, lon1, lat0, lat1 = zona
+                visibles = {n: n for n in G if lon0 <= G.nodes[n]["lon"] <= lon1 and lat0 <= G.nodes[n]["lat"] <= lat1}
+                nx.draw_networkx_labels(G, self.pos, labels=visibles, font_size=8, ax=ax,
+                                        verticalalignment="bottom", bbox=dict(boxstyle="round,pad=0.15",
+                                                                              fc="white", ec="none", alpha=0.75))
+            else:
+                principales = {n: n for n in transbordos if len(G.nodes[n]["lineas"]) >= 3}
+                nx.draw_networkx_labels(G, self.pos, labels=principales, font_size=7, ax=ax,
+                                        verticalalignment="bottom")
+        if zona:
+            ax.set_xlim(zona[0], zona[1])
+            ax.set_ylim(zona[2], zona[3])
 
         ax.set_title(titulo, fontsize=16)
-        ax.legend(loc="upper left", fontsize=8, ncol=2)
+        if zona:
+            ax.legend(loc="upper left", bbox_to_anchor=(1.01, 1), fontsize=8)
+        else:
+            ax.legend(loc="upper left", fontsize=8, ncol=2)
         ax.set_xlabel("Longitud")
         ax.set_ylabel("Latitud")
         ax.set_aspect(1 / np.cos(np.radians(40.42)))
         _guardar(fig, archivo)
         return fig
+
+    def red_centro(self, archivo: str = None):
+        """Vista ampliada de la almendra central, donde se concentran los transbordos."""
+        return self.red(titulo="Centro de Madrid (vista ampliada)", etiquetas=True, archivo=archivo,
+                        zona=(-3.728, -3.668, 40.400, 40.452))
 
     # ---------- Métricas ----------
 
@@ -196,7 +219,11 @@ class Visualizador:
     def mapa_folium(self, ruta: Dict = None, resaltar: Iterable[str] = None,
                     eliminadas: Iterable[str] = None, archivo: str = "mapa_metro.html") -> folium.Map:
         G = self.G
-        mapa = folium.Map(location=[40.43, -3.69], zoom_start=12, tiles="OpenStreetMap")
+        # openstreetmap.org bloquea los mosaicos al abrir el HTML como archivo local y CARTO exige clave: se usa Esri
+        mapa = folium.Map(location=[40.43, -3.69], zoom_start=12, max_zoom=16,
+                          tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/"
+                                "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+                          attr="Fondo © Esri · Datos © OpenStreetMap")
         for linea in self.lineas:
             capa = folium.FeatureGroup(name=linea.nombre)
             coords = [(G.nodes[e]["lat"], G.nodes[e]["lon"]) for e in linea.estaciones]
@@ -234,8 +261,11 @@ class Visualizador:
             for s in ruta["segmentos"]:
                 coords = [(G.nodes[e]["lat"], G.nodes[e]["lon"]) for e in s["estaciones"]]
                 folium.PolyLine(coords, color="black", weight=10, opacity=0.4).add_to(capa)
-                folium.PolyLine(coords, color=self.colores[s["linea"]], weight=6,
-                                tooltip=f"Línea {s['linea']}: {s['estaciones'][0]} → {s['estaciones'][-1]}").add_to(capa)
+                pasillo = s["linea"] == "pasillo"
+                color = "#64748B" if pasillo else self.colores[s.get("linea_base", s["linea"])]
+                etiqueta = "A pie (pasillo)" if pasillo else f"Línea {s['linea']}"
+                folium.PolyLine(coords, color=color, weight=6, dash_array="6 8" if pasillo else None,
+                                tooltip=f"{etiqueta}: {s['estaciones'][0]} → {s['estaciones'][-1]}").add_to(capa)
             ini, fin = ruta["estaciones"][0], ruta["estaciones"][-1]
             folium.Marker((G.nodes[ini]["lat"], G.nodes[ini]["lon"]), tooltip=f"Origen: {ini}",
                           icon=folium.Icon(color="green", icon="play")).add_to(capa)

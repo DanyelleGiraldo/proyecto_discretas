@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import networkx as nx
 
 from grafo import ConstructorGrafo, ListaAdyacencia
-from modelos import VELOCIDAD_MEDIA_KMH, haversine_km
+from modelos import LINEA_PASILLO, PENALIZACION_TRANSBORDO_MIN, VELOCIDAD_MEDIA_KMH, haversine_km
 
 
 def _reconstruir(previo: Dict, destino) -> List:
@@ -96,8 +96,9 @@ class PlanificadorRutas:
         self.GL = GL
         self.adj_tiempo = ConstructorGrafo.lista_adyacencia(G, "tiempo")
         self.coords = {n: (d["lat"], d["lon"]) for n, d in G.nodes(data=True)}
-        self.penalizacion = next(
-            (d["tiempo"] for _, _, d in GL.edges(data=True) if d["tipo"] == "transbordo"), 5.0)
+        self.servicios_en = GL.graph["servicios_en"]
+        self.linea_de = GL.graph["linea_de"]
+        self.penalizacion = PENALIZACION_TRANSBORDO_MIN
 
     def validar(self, *estaciones):
         for e in estaciones:
@@ -121,54 +122,67 @@ class PlanificadorRutas:
 
     # ---------- Grafo de líneas (con transbordos) ----------
 
-    def _adj_lineas(self, origen: str, destino: str, costo_transbordo: float, costo_tramo: Callable):
+    @staticmethod
+    def _costo_transbordo_real(d: Dict, penalizacion: float = None) -> float:
+        """Caminata (solo en pasillos) + espera; la espera se puede reemplazar por una penalización fija."""
+        return d["caminata"] + (d["espera"] if penalizacion is None else penalizacion)
+
+    def _adj_lineas(self, origen: str, destino: str, costo: Callable[[Dict], float]):
         adj: ListaAdyacencia = {n: [] for n in self.GL.nodes}
         for u, v, d in self.GL.edges(data=True):
-            w = costo_transbordo if d["tipo"] == "transbordo" else costo_tramo(d)
+            w = costo(d)
             adj[u].append((v, w))
             adj[v].append((u, w))
-        # Vértices virtuales: el viajero puede empezar/terminar en cualquier línea de la estación
-        adj[self.ORIGEN_VIRTUAL] = [((origen, l), 0.0) for l in self.G.nodes[origen]["lineas"]]
+        # Vértices virtuales: el viajero puede empezar/terminar en cualquier servicio de la estación
+        adj[self.ORIGEN_VIRTUAL] = [((origen, s), 0.0) for s in self.servicios_en[origen]]
         adj[self.DESTINO_VIRTUAL] = []
-        for l in self.G.nodes[destino]["lineas"]:
-            adj[(destino, l)].append((self.DESTINO_VIRTUAL, 0.0))
+        for s in self.servicios_en[destino]:
+            adj[(destino, s)].append((self.DESTINO_VIRTUAL, 0.0))
         return adj
 
-    def _resolver_lineas(self, origen, destino, costo_transbordo, costo_tramo):
+    def _resolver_lineas(self, origen, destino, costo, penalizacion=None):
         self.validar(origen, destino)
-        adj = self._adj_lineas(origen, destino, costo_transbordo, costo_tramo)
+        adj = self._adj_lineas(origen, destino, costo)
         camino, _, explorados = dijkstra(adj, self.ORIGEN_VIRTUAL, self.DESTINO_VIRTUAL)
         camino = camino[1:-1]
-        return self.describir(camino), explorados
+        return self.describir(camino, penalizacion), explorados
 
     def mas_rapida(self, origen: str, destino: str, penalizacion: float = None):
-        """Minimiza el tiempo total incluyendo la penalización de cada transbordo."""
-        pen = penalizacion if penalizacion is not None else self.penalizacion
-        return self._resolver_lineas(origen, destino, pen, lambda d: d["tiempo"])
+        """Minimiza el tiempo total: tramos + caminatas + esperas de cada transbordo."""
+        def costo(d):
+            return d["tiempo"] if d["tipo"] == "tramo" else self._costo_transbordo_real(d, penalizacion)
+        return self._resolver_lineas(origen, destino, costo, penalizacion)
 
     def menos_transbordos(self, origen: str, destino: str):
-        """Orden lexicográfico: primero minimiza transbordos (peso 1000) y luego el tiempo."""
-        return self._resolver_lineas(origen, destino, 1000.0, lambda d: d["tiempo"])
+        """Orden lexicográfico: cada transbordo pesa 1000, así primero se minimizan transbordos y luego el tiempo."""
+        def costo(d):
+            return d["tiempo"] if d["tipo"] == "tramo" else 1000.0 + self._costo_transbordo_real(d)
+        return self._resolver_lineas(origen, destino, costo)
 
-    def describir(self, camino_lineas: List[Tuple[str, str]]) -> Dict:
+    def describir(self, camino_lineas: List[Tuple[str, str]], penalizacion: float = None) -> Dict:
         """Convierte un camino del grafo de líneas en tramos legibles y calcula sus totales."""
         segmentos = []
-        tiempo_viaje = 0.0
-        distancia = 0.0
-        transbordos = 0
-        for (u, lu), (v, lv) in zip(camino_lineas, camino_lineas[1:]):
-            d = self.GL[(u, lu)][(v, lv)]
+        tiempo_viaje = tiempo_transbordos = distancia = 0.0
+        transbordos = paradas = 0
+        for (u, su), (v, sv) in zip(camino_lineas, camino_lineas[1:]):
+            d = self.GL[(u, su)][(v, sv)]
             if d["tipo"] == "transbordo":
                 transbordos += 1
+                tiempo_transbordos += self._costo_transbordo_real(d, penalizacion)
+                if u != v:  # pasillo peatonal entre dos estaciones distintas
+                    distancia += d["distancia"]
+                    segmentos.append({"linea": LINEA_PASILLO, "linea_base": LINEA_PASILLO, "estaciones": [u, v]})
                 continue
+            paradas += 1
             tiempo_viaje += d["tiempo"]
             distancia += d["distancia"]
-            if segmentos and segmentos[-1]["linea"] == lu:
+            if segmentos and segmentos[-1]["linea"] == su:
                 segmentos[-1]["estaciones"].append(v)
             else:
-                segmentos.append({"linea": lu, "estaciones": [u, v]})
+                segmentos.append({"linea": su, "linea_base": self.linea_de[su], "estaciones": [u, v]})
 
-        estaciones = []
+        # Origen = destino: el camino tiene un solo vértice y ningún tramo
+        estaciones = [camino_lineas[0][0]] if camino_lineas and not segmentos else []
         for s in segmentos:
             for e in s["estaciones"]:
                 if not estaciones or estaciones[-1] != e:
@@ -176,10 +190,11 @@ class PlanificadorRutas:
         return {
             "estaciones": estaciones,
             "segmentos": segmentos,
-            "paradas": len(estaciones) - 1,
+            "paradas": paradas,
             "transbordos": transbordos,
             "tiempo_viaje_min": round(tiempo_viaje, 2),
-            "tiempo_total_min": round(tiempo_viaje + transbordos * self.penalizacion, 2),
+            "tiempo_transbordos_min": round(tiempo_transbordos, 2),
+            "tiempo_total_min": round(tiempo_viaje + tiempo_transbordos, 2),
             "distancia_km": round(distancia, 2),
         }
 
