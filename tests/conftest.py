@@ -5,9 +5,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from datos import CargadorDatos  # noqa: E402
-from grafo import ConstructorGrafo  # noqa: E402
-from rutas import PlanificadorRutas  # noqa: E402
+from datos import CargadorDatos
+from grafo import ConstructorGrafo
+from rutas import PlanificadorRutas
 
 
 @pytest.fixture(scope="session")

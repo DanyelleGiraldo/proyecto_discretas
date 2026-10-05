@@ -5,10 +5,6 @@ import pytest
 
 from rutas import a_estrella, bfs, dijkstra
 
-# Grafo pequeño de ejemplo para probar los algoritmos a mano
-#   A --1-- B --1-- C
-#   |               |
-#   +------5--------+
 ADJ = {
     "A": [("B", 1), ("C", 5)],
     "B": [("A", 1), ("C", 1)],
@@ -62,7 +58,7 @@ def test_bfs_igual_a_networkx(G, planificador):
 
 
 def test_heuristica_admisible(G, planificador):
-    """h(n) nunca sobreestima el costo real hasta el destino."""
+    """La heurística nunca debe pasarse del costo real."""
     from modelos import VELOCIDAD_MEDIA_KMH, haversine_km
     destino = "Sol"
     reales = nx.single_source_dijkstra_path_length(G, destino, weight="tiempo")
@@ -101,7 +97,6 @@ def test_ruta_ramal(planificador):
 
 
 def test_linea_circular_toma_el_cierre(planificador):
-    # Laguna y Carpetana son vecinas solo por el cierre del ciclo de la L6
     r, _ = planificador.mas_rapida("Laguna", "Carpetana")
     assert r["paradas"] == 1
 

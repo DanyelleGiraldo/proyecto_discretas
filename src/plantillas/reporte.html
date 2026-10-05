@@ -138,7 +138,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
 
 <main>
 
-<!-- ================================================================ METODOLOGÍA -->
 <section class="bloque" id="metodologia">
   <h2>Metodología y datos</h2>
   <div class="grid2">
@@ -184,7 +183,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ 1 ESTRUCTURA -->
 <section class="bloque" id="estructura">
   <h2><span class="numero">1</span>Estructura del grafo</h2>
   <p class="pregunta">¿Cuál es la estructura del grafo?</p>
@@ -223,7 +221,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   Es lo normal en una red de transporte, donde cada estación solo se conecta con sus vecinas físicas. El grado medio es {{ r.globales.grado_medio }}.</div>
 </section>
 
-<!-- ================================================================ 2 RUTAS -->
 <section class="bloque" id="rutas">
   <h2><span class="numero">2</span>Ruta más corta entre dos estaciones</h2>
   <p class="pregunta">¿Cuál es la ruta más corta (en tiempo o número de paradas) entre dos estaciones cualesquiera?</p>
@@ -275,7 +272,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   Es un problema de <b>optimización multiobjetivo</b>: el "mejor" camino depende de la función de peso.</div>
 </section>
 
-<!-- ================================================================ 3 CENTRALIDAD -->
 <section class="bloque" id="centralidad">
   <h2><span class="numero">3</span>Estaciones más importantes (centralidad)</h2>
   <p class="pregunta">¿Qué estaciones son las más importantes según su centralidad (mayor número de conexiones o de rutas que pasan por ellas)?</p>
@@ -297,7 +293,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   <span class="cifra">{{ r.corr_grado_bc }}</span>. <i>Nuevos Ministerios</i> y <i>Gregorio Marañón</i> encabezan la intermediación porque unen el norte con el centro.</div>
 </section>
 
-<!-- ================================================================ 4 ELIMINAR -->
 <section class="bloque" id="eliminar">
   <h2><span class="numero">4</span>¿Qué pasa si se elimina una estación clave?</h2>
   <p class="pregunta">¿Qué pasa con la conectividad de la red si se elimina una estación clave (por ejemplo, un nodo de transbordo)?</p>
@@ -323,7 +318,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   Lo que importa para la conectividad no es el grado sino la <b>posición estructural</b>.</div>
 </section>
 
-<!-- ================================================================ 5 FALLOS -->
 <section class="bloque" id="fallos">
   <h2><span class="numero">5</span>Puntos únicos de fallo</h2>
   <p class="pregunta">¿Existen estaciones cuya eliminación desconecta partes de la red (puntos únicos de fallo)?</p>
@@ -346,7 +340,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   por intermediación, la componente gigante cae al {{ r.ataques['Ataque por intermediación'][5] }}%, frente al {{ r.ataques['Fallo aleatorio'][5] }}% con fallos al azar.</div>
 </section>
 
-<!-- ================================================================ 6 GRADOS -->
 <section class="bloque" id="grados">
   <h2><span class="numero">6</span>Distribución estadística de los grados</h2>
   <p class="pregunta">¿Cómo se distribuyen estadísticamente los grados de los nodos en la red completa?</p>
@@ -364,7 +357,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   No es una red libre de escala como Internet: es una red <b>espacial</b>, con el grado limitado por la geografía.</div>
 </section>
 
-<!-- ================================================================ 7 TEORÍA -->
 <section class="bloque" id="teoria">
   <h2><span class="numero">7</span>Propiedades y teoremas</h2>
   <div class="grid2">
@@ -389,7 +381,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ 8 ALEATORIA -->
 <section class="bloque" id="aleatoria">
   <h2><span class="numero">8</span>Red real frente a redes aleatorias</h2>
   <p>¿Qué propiedades son <b>fruto del diseño</b> y cuáles saldrían por azar? Se compara la red con 20 muestras de dos <b>modelos nulos</b>:</p>
@@ -412,7 +403,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ 9 OPTIMIZACIÓN -->
 <section class="bloque" id="optimizacion">
   <h2><span class="numero">9</span>Optimización combinatoria</h2>
   <div class="panel">
@@ -463,7 +453,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ 10 COMUNIDADES -->
 <section class="bloque" id="comunidades">
   <h2><span class="numero">10</span>Comunidades: zonas naturales de la red</h2>
   <p>El algoritmo de <b>Louvain</b> agrupa estaciones maximizando la <b>modularidad</b>:</p>
@@ -478,7 +467,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ 11 IA -->
 <section class="bloque" id="ia">
   <h2><span class="numero">11</span>Inteligencia artificial</h2>
   <div class="grid3">
@@ -502,7 +490,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   Eso justifica calcularla sobre el grafo completo.</div>
 </section>
 
-<!-- ================================================================ 12 COMPLEJIDAD -->
 <section class="bloque" id="complejidad">
   <h2><span class="numero">12</span>Complejidad empírica de los algoritmos</h2>
   <p>Se generaron redes sintéticas parecidas al metro (planas, dispersas, con E ≈ 1.15·V) de 250 a 16 000 vértices y se midieron 60 consultas aleatorias
@@ -516,7 +503,6 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
   </div>
 </section>
 
-<!-- ================================================================ CONCLUSIONES -->
 <section class="bloque" id="conclusiones">
   <h2>Conclusiones</h2>
   <div class="grid2">
@@ -545,7 +531,6 @@ const GRAFICOS = {{ graficos_json }};
 {% raw %}
 <script>
 "use strict";
-// ======================================================================== utilidades
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const normalizar = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
@@ -567,7 +552,6 @@ function buscarEstacion(texto) {
 
 document.getElementById("lista-estaciones").innerHTML = NOMBRES.map((n) => `<option value="${esc(n)}">`).join("");
 
-// Cola de prioridad (montículo binario) para Dijkstra y A*
 class Heap {
   constructor() { this.a = []; }
   get size() { return this.a.length; }
@@ -630,7 +614,6 @@ function haversine(a, b) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-// ======================================================================== grafos
 const ADJ_G = new Map(NOMBRES.map((n) => [n, []]));
 const TIEMPO_G = new Map();
 for (const [u, v, t] of DATOS.aristasG) {
@@ -678,12 +661,8 @@ function describir(camino) {
   return { segmentos, paradas, transbordos: transb, viaje, tiempoTransb, total: viaje + tiempoTransb, distancia };
 }
 
-// ======================================================================== mapas
 const BOUNDS = L.latLngBounds(DATOS.estaciones.map((e) => [e.lat, e.lon]));
 
-// Fondo del mapa. openstreetmap.org rechaza páginas abiertas como archivo local (sin Referer) y CARTO ahora
-// exige clave, así que se usa Esri (gris claro, para que resalten las líneas) con su mapa de calles de respaldo.
-// Sin internet el mapa sigue funcionando, solo sin fondo.
 const FONDOS = [
   ["https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 16, attribution: "Fondo © Esri · Datos © OpenStreetMap" }],
@@ -735,11 +714,9 @@ function dibujarEstaciones(mapa, { radio = (e) => (e.transbordo ? 6 : 4), rellen
   return capa;
 }
 
-// Leyenda de líneas
 $("#leyenda-lineas").innerHTML = DATOS.lineas.map((l) => `<span><i style="background:${l.color}"></i>${esc(l.nombre)}</span>`).join("")
   + `<span><i style="background:#64748B"></i>pasillo peatonal</span><span><i class="punto" style="background:#fff;border:2px solid #1E2433"></i>transbordo</span>`;
 
-// ======================================================================== 2 · rutas
 const mapaRutas = crearMapa("mapa-rutas");
 dibujarEstaciones(mapaRutas, { popup: (e) => popupEstacion(e, true) });
 const capaRuta = L.layerGroup().addTo(mapaRutas);
@@ -819,7 +796,6 @@ function compararAlgoritmos(o, d) {
     + `</tbody></table><small>* Sobre G, sin contar transbordos. Ejecutado en tu navegador (JavaScript), con la misma lógica que <code>rutas.py</code>.</small>`;
 }
 
-// ======================================================================== 3 · centralidad
 (() => {
   const mapa = crearMapa("mapa-centralidad", { suave: true });
   const max = Math.max(...DATOS.estaciones.map((e) => e.bc));
@@ -831,7 +807,6 @@ function compararAlgoritmos(o, d) {
   }
 })();
 
-// ======================================================================== 4 · simulador de cierres
 const mapaElim = crearMapa("mapa-eliminar", { suave: true });
 const cerradas = new Set();
 const capaSim = L.layerGroup().addTo(mapaElim);
@@ -849,7 +824,6 @@ function componentes(excluir) {
 }
 
 function eficiencia(excluir) {
-  // Igual que nx.global_efficiency: promedio de 1/d(u,v) en saltos sobre los vértices restantes
   const vivos = NOMBRES.filter((n) => !excluir.has(n)), n = vivos.length;
   let suma = 0;
   for (const s of vivos) {
@@ -905,7 +879,6 @@ document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("cl
 }));
 actualizarSimulador();
 
-// ======================================================================== 5 · puntos de fallo
 (() => {
   const mapa = L.map("mapa-fallos", { preferCanvas: true });
   agregarFondo(mapa);
@@ -921,7 +894,6 @@ actualizarSimulador();
   });
 })();
 
-// ======================================================================== 9 · optimización
 const mapaOpt = crearMapa("mapa-opt", { suave: true });
 const capaOpt = L.layerGroup().addTo(mapaOpt);
 const PALETA_COLOREO = ["#2563EB", "#F59E0B", "#DC2626", "#16A34A", "#9333EA"];
@@ -978,7 +950,6 @@ document.querySelectorAll("#vista-opt button").forEach((b) => b.addEventListener
 }));
 VISTAS.cartero();
 
-// ======================================================================== 10 · comunidades
 (() => {
   const mapa = crearMapa("mapa-comunidades", { suave: true });
   const n = DATOS.numComunidades;
@@ -986,13 +957,11 @@ VISTAS.cartero();
   dibujarEstaciones(mapa, { radio: () => 6, relleno: (e) => color(e.com), borde: () => "#1E2433" });
 })();
 
-// ======================================================================== gráficos
 for (const [id, fig] of Object.entries(GRAFICOS)) {
   const el = document.getElementById("g-" + id);
   if (el) Plotly.newPlot(el, fig.data, fig.layout, { responsive: true, displaylogo: false });
 }
 
-// Índice activo al desplazarse
 const enlaces = [...document.querySelectorAll("nav.indice a")];
 const observador = new IntersectionObserver((entradas) => {
   for (const en of entradas) if (en.isIntersecting) enlaces.forEach((a) => a.classList.toggle("activo", a.getAttribute("href") === "#" + en.target.id));

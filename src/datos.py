@@ -12,7 +12,6 @@ ARCHIVO_DATASET = RAIZ / "data" / "metro_madrid.json"
 
 
 class CargadorDatos:
-
     @staticmethod
     def cargar(ruta: Path = ARCHIVO_DATASET) -> Tuple[Dict[str, Estacion], List[Linea], List[Conexion]]:
         datos = json.loads(Path(ruta).read_text(encoding="utf-8"))
@@ -34,7 +33,6 @@ class CargadorDatos:
                 conexiones.append(Conexion(u, v, linea.codigo, round(d, 3), round(tiempo_tramo_min(d), 2),
                                            linea.servicio_de(u, v)))
 
-        # Pasillos peatonales de transbordo: no son tramos de tren, se recorren caminando
         for u, v in datos.get("pasillos", []):
             a, b = estaciones[u], estaciones[v]
             a.pasillos.append(v)

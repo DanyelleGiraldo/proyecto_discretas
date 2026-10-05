@@ -19,10 +19,7 @@ def _reconstruir(previo: Dict, destino) -> List:
 
 
 def bfs(adj: ListaAdyacencia, origen, destino) -> Tuple[List, int, int]:
-    """
-    Búsqueda en anchura: camino con el menor número de paradas (grafo no ponderado).
-    Retorna (camino, numero_de_paradas, nodos_explorados).  Complejidad O(V + E).
-    """
+    """Busca la ruta con menos paradas usando BFS."""
     previo = {origen: None}
     cola = deque([origen])
     explorados = 0
@@ -41,16 +38,12 @@ def bfs(adj: ListaAdyacencia, origen, destino) -> Tuple[List, int, int]:
 
 def dijkstra(adj: ListaAdyacencia, origen, destino,
              heuristica: Optional[Callable] = None) -> Tuple[List, float, int]:
-    """
-    Dijkstra con cola de prioridad (heap). Si se pasa una heurística h(n) se convierte en A*:
-    la prioridad pasa a ser f(n) = g(n) + h(n).
-    Retorna (camino, costo_total, nodos_explorados).  Complejidad O((V + E) log V).
-    """
+    """Busca la ruta de menor costo con Dijkstra. Si recibe una heurística, funciona como A*."""
     h = heuristica or (lambda n: 0.0)
     dist = {origen: 0.0}
     previo = {origen: None}
     visitados = set()
-    contador = 0  # desempate para no comparar nodos (las tuplas del grafo de líneas no son comparables con str)
+    contador = 0
     heap = [(h(origen), 0.0, contador, origen)]
 
     while heap:
@@ -71,11 +64,7 @@ def dijkstra(adj: ListaAdyacencia, origen, destino,
 
 
 def a_estrella(adj: ListaAdyacencia, coords: Dict[str, Tuple[float, float]], origen, destino):
-    """
-    A* (búsqueda informada, técnica clásica de IA). Heurística: tiempo en línea recta
-    a velocidad media. Es admisible porque cada tramo cuesta al menos distancia/velocidad,
-    y por desigualdad triangular la línea recta nunca supera la suma de los tramos.
-    """
+    """Busca la ruta de menor tiempo con A*, usando la distancia en línea recta."""
     lat_d, lon_d = coords[destino]
 
     def h(n):
@@ -86,8 +75,6 @@ def a_estrella(adj: ListaAdyacencia, coords: Dict[str, Tuple[float, float]], ori
 
 
 class PlanificadorRutas:
-    """Une los dos grafos y expone las consultas de ruta que pide el proyecto."""
-
     ORIGEN_VIRTUAL = ("__ORIGEN__", None)
     DESTINO_VIRTUAL = ("__DESTINO__", None)
 
@@ -105,14 +92,12 @@ class PlanificadorRutas:
             if e not in self.G:
                 raise ValueError(f"La estación '{e}' no existe en la red")
 
-    # ---------- Grafo de estaciones ----------
-
     def menos_paradas(self, origen: str, destino: str):
         self.validar(origen, destino)
         return bfs(self.adj_tiempo, origen, destino)
 
     def mas_rapida_sin_transbordos(self, origen: str, destino: str):
-        """Dijkstra sobre G: ignora el costo de cambiar de línea (cota inferior del tiempo real)."""
+        """Ruta más rápida en G sin contar los transbordos."""
         self.validar(origen, destino)
         return dijkstra(self.adj_tiempo, origen, destino)
 
@@ -120,11 +105,9 @@ class PlanificadorRutas:
         self.validar(origen, destino)
         return a_estrella(self.adj_tiempo, self.coords, origen, destino)
 
-    # ---------- Grafo de líneas (con transbordos) ----------
-
     @staticmethod
     def _costo_transbordo_real(d: Dict, penalizacion: float = None) -> float:
-        """Caminata (solo en pasillos) + espera; la espera se puede reemplazar por una penalización fija."""
+        """Costo de un transbordo: caminata más espera."""
         return d["caminata"] + (d["espera"] if penalizacion is None else penalizacion)
 
     def _adj_lineas(self, origen: str, destino: str, costo: Callable[[Dict], float]):
@@ -133,7 +116,6 @@ class PlanificadorRutas:
             w = costo(d)
             adj[u].append((v, w))
             adj[v].append((u, w))
-        # Vértices virtuales: el viajero puede empezar/terminar en cualquier servicio de la estación
         adj[self.ORIGEN_VIRTUAL] = [((origen, s), 0.0) for s in self.servicios_en[origen]]
         adj[self.DESTINO_VIRTUAL] = []
         for s in self.servicios_en[destino]:
@@ -148,19 +130,19 @@ class PlanificadorRutas:
         return self.describir(camino, penalizacion), explorados
 
     def mas_rapida(self, origen: str, destino: str, penalizacion: float = None):
-        """Minimiza el tiempo total: tramos + caminatas + esperas de cada transbordo."""
+        """Ruta de menor tiempo contando los transbordos."""
         def costo(d):
             return d["tiempo"] if d["tipo"] == "tramo" else self._costo_transbordo_real(d, penalizacion)
         return self._resolver_lineas(origen, destino, costo, penalizacion)
 
     def menos_transbordos(self, origen: str, destino: str):
-        """Orden lexicográfico: cada transbordo pesa 1000, así primero se minimizan transbordos y luego el tiempo."""
+        """Ruta con menos transbordos; si hay empate, la más rápida."""
         def costo(d):
             return d["tiempo"] if d["tipo"] == "tramo" else 1000.0 + self._costo_transbordo_real(d)
         return self._resolver_lineas(origen, destino, costo)
 
     def describir(self, camino_lineas: List[Tuple[str, str]], penalizacion: float = None) -> Dict:
-        """Convierte un camino del grafo de líneas en tramos legibles y calcula sus totales."""
+        """Convierte el camino en tramos por línea y calcula los totales."""
         segmentos = []
         tiempo_viaje = tiempo_transbordos = distancia = 0.0
         transbordos = paradas = 0
@@ -169,7 +151,7 @@ class PlanificadorRutas:
             if d["tipo"] == "transbordo":
                 transbordos += 1
                 tiempo_transbordos += self._costo_transbordo_real(d, penalizacion)
-                if u != v:  # pasillo peatonal entre dos estaciones distintas
+                if u != v:
                     distancia += d["distancia"]
                     segmentos.append({"linea": LINEA_PASILLO, "linea_base": LINEA_PASILLO, "estaciones": [u, v]})
                 continue
@@ -181,7 +163,6 @@ class PlanificadorRutas:
             else:
                 segmentos.append({"linea": su, "linea_base": self.linea_de[su], "estaciones": [u, v]})
 
-        # Origen = destino: el camino tiene un solo vértice y ningún tramo
         estaciones = [camino_lineas[0][0]] if camino_lineas and not segmentos else []
         for s in segmentos:
             for e in s["estaciones"]:
@@ -198,10 +179,8 @@ class PlanificadorRutas:
             "distancia_km": round(distancia, 2),
         }
 
-    # ---------- Comparación de algoritmos ----------
-
     def comparar_algoritmos(self, origen: str, destino: str) -> List[Dict]:
-        """Ejecuta las implementaciones propias y las de networkx y verifica que coincidan."""
+        """Compara nuestros algoritmos con los de networkx."""
         self.validar(origen, destino)
         resultados = []
 

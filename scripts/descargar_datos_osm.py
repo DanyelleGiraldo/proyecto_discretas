@@ -1,14 +1,3 @@
-"""
-Genera el dataset de las 13 líneas del Metro de Madrid a partir de OpenStreetMap.
-
-Uso:
-    python scripts/descargar_datos_osm.py            # descarga de Overpass y genera el dataset
-    python scripts/descargar_datos_osm.py --offline  # usa data/osm_crudo.json ya descargado
-
-Salidas:
-    data/osm_crudo.json   respuesta cruda de Overpass (relaciones route=subway + nodos)
-    data/metro_madrid.json dataset limpio: estaciones (con coordenadas) y líneas (paradas en orden)
-"""
 import json
 import sys
 import urllib.parse
@@ -33,8 +22,6 @@ node(r.r);
 out body;
 """
 
-# Relación OSM (un sentido) que se toma para cada línea. Las líneas 6 y 12 son circulares.
-# La línea 10 está partida en dos servicios en OSM y se unen en Tres Olivos.
 RELACIONES = {
     "1": [62146],
     "2": [7838962],
@@ -51,13 +38,11 @@ RELACIONES = {
     "R": [61836],
 }
 
-# Transbordos oficiales entre estaciones con distinto nombre, unidas por pasillo peatonal
 PASILLOS = [
     ("Noviciado", "Plaza de España"),
     ("Embajadores", "Acacias"),
 ]
 
-# La línea 10 opera en dos servicios: hay que cambiar de tren en Tres Olivos
 SERVICIOS = {
     "10": {
         "10A": ("Puerta del Sur", "Tres Olivos"),
@@ -89,7 +74,6 @@ def construir_dataset(crudo):
     nodos = {e["id"]: e for e in crudo["elements"] if e["type"] == "node"}
     relaciones = {e["id"]: e for e in crudo["elements"] if e["type"] == "relation"}
 
-    # Coordenadas de cada estación = promedio de sus stop_position en todas las líneas
     coordenadas = {}
     lineas = []
 

@@ -1,7 +1,6 @@
 import networkx as nx
 import pytest
 
-# Número oficial de estaciones por línea
 ESTACIONES_POR_LINEA = {"1": 33, "2": 20, "3": 19, "4": 23, "5": 32, "6": 28, "7": 31,
                         "8": 8, "9": 29, "10": 31, "11": 7, "12": 28, "R": 2}
 
@@ -52,7 +51,6 @@ def test_pasillos_de_transbordo(G):
 
 
 def test_tramo_compartido_por_dos_lineas(G):
-    # Chamartín - Plaza de Castilla lo recorren L1 y L10: una sola arista con ambas líneas
     assert sorted(G["Chamartín"]["Plaza de Castilla"]["lineas"]) == ["1", "10"]
 
 
@@ -63,11 +61,9 @@ def test_apreton_de_manos(G):
 def test_grafo_de_lineas(red):
     GL = red["GL"]
     servicios_en = GL.graph["servicios_en"]
-    # Cada estación con k servicios aporta k vértices y C(k,2) transbordos internos
     assert GL.number_of_nodes() == sum(len(s) for s in servicios_en.values())
     internos = sum(1 for u, v, d in GL.edges(data=True) if d["tipo"] == "transbordo" and u[0] == v[0])
     assert internos == sum(len(s) * (len(s) - 1) // 2 for s in servicios_en.values())
-    # Pasillos: un transbordo por cada par de servicios de las dos estaciones
     pasillo = sum(1 for u, v, d in GL.edges(data=True) if d["tipo"] == "transbordo" and u[0] != v[0])
     esperado = (len(servicios_en["Noviciado"]) * len(servicios_en["Plaza de España"])
                 + len(servicios_en["Embajadores"]) * len(servicios_en["Acacias"]))

@@ -1,13 +1,3 @@
-"""
-Comparación de la red real con modelos nulos (redes aleatorias de referencia):
-
-- Erdős–Rényi G(n, m): mismo número de vértices y aristas, conexiones al azar.
-- Reconexión con grados preservados: misma secuencia de grados, pero aristas intercambiadas
-  al azar (double edge swap). Muestra qué propiedades vienen de la geografía y no solo de los grados.
-
-Si una métrica de la red real es muy distinta a la de los modelos nulos, esa propiedad
-no es casualidad: es consecuencia del diseño de la red.
-"""
 from typing import Dict
 
 import networkx as nx
@@ -33,9 +23,8 @@ def _metricas(H: nx.Graph) -> Dict:
 
 
 class ComparadorModelosNulos:
-
     def __init__(self, G: nx.Graph, repeticiones: int = 20, semilla: int = 42):
-        self.G = nx.Graph(G.edges())  # solo la estructura
+        self.G = nx.Graph(G.edges())
         self.repeticiones = repeticiones
         self.semilla = semilla
 
@@ -59,7 +48,7 @@ class ComparadorModelosNulos:
         return pd.DataFrame(filas).T.round(4)
 
     def robustez_comparada(self, fraccion: float = 0.2) -> Dict[str, pd.DataFrame]:
-        """Ataque por intermediación sobre la red real y sobre un representante de cada modelo nulo."""
+        """Compara el ataque por intermediación en la red real y en las aleatorias."""
         from robustez import AnalizadorRobustez
         redes = {
             "Metro de Madrid (real)": self.G,
@@ -75,7 +64,7 @@ class ComparadorModelosNulos:
 
     @staticmethod
     def distribucion_grados(G: nx.Graph, repeticiones: int = 20, semilla: int = 42) -> pd.DataFrame:
-        """P(k) real frente al promedio de P(k) en Erdős–Rényi (que sigue una binomial/Poisson)."""
+        """Compara la distribución de grados real con la de Erdős–Rényi."""
         n, m = G.number_of_nodes(), G.number_of_edges()
         real = pd.Series([d for _, d in G.degree()]).value_counts(normalize=True)
         er = [pd.Series([d for _, d in nx.gnm_random_graph(n, m, seed=semilla + i).degree()])

@@ -75,6 +75,7 @@ La función `consultar_ruta("Origen", "Destino")` de la sección 3 calcula cualq
 python src/main.py
 ```
 Los nombres de estación no distinguen mayúsculas ni tildes, y el menú sugiere nombres parecidos. La opción 14 genera el reporte HTML.
+La explicación detallada de cada opción está en [`docs/GUIA_MENU.md`](docs/GUIA_MENU.md).
 
 **Pruebas automáticas:**
 ```bash

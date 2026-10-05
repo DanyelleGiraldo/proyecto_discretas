@@ -6,24 +6,19 @@ import pandas as pd
 
 
 class AnalizadorRobustez:
-
     def __init__(self, G: nx.Graph):
         self.G = G
 
-    # ---------- Puntos únicos de fallo ----------
-
     def puntos_articulacion(self) -> List[str]:
-        """Vértices cuya eliminación aumenta el número de componentes conexas."""
+        """Estaciones que al quitarlas desconectan la red."""
         return sorted(nx.articulation_points(self.G))
 
     def puentes(self) -> List[tuple]:
-        """Aristas (tramos) cuya eliminación desconecta la red."""
+        """Tramos que al quitarlos desconectan la red."""
         return sorted(tuple(sorted(e)) for e in nx.bridges(self.G))
 
     def componentes_biconexas(self) -> List[set]:
         return sorted(nx.biconnected_components(self.G), key=len, reverse=True)
-
-    # ---------- Eliminación puntual ----------
 
     @staticmethod
     def estado(H: nx.Graph, n_original: int) -> Dict:
@@ -38,7 +33,7 @@ class AnalizadorRobustez:
         }
 
     def eliminar_estaciones(self, estaciones: Iterable[str]) -> Dict:
-        estaciones = list(dict.fromkeys(estaciones))  # sin repetidos, conserva el orden
+        estaciones = list(dict.fromkeys(estaciones))
         desconocidas = [e for e in estaciones if e not in self.G]
         if desconocidas:
             raise ValueError(f"Estaciones inexistentes: {desconocidas}")
@@ -76,7 +71,7 @@ class AnalizadorRobustez:
         }
 
     def impacto_individual(self, candidatas: Iterable[str] = None) -> pd.DataFrame:
-        """Elimina una estación a la vez y mide el daño. Por defecto evalúa todas."""
+        """Quita cada estación por separado y mide el daño."""
         candidatas = list(candidatas) if candidatas is not None else list(self.G.nodes)
         n = self.G.number_of_nodes()
         efic0 = nx.global_efficiency(self.G)
@@ -95,15 +90,9 @@ class AnalizadorRobustez:
         return pd.DataFrame(filas).set_index("estacion").sort_values(
             ["estaciones_aisladas", "perdida_eficiencia_%"], ascending=False)
 
-    # ---------- Ataques y fallos en cascada ----------
-
     def simular_ataque(self, estrategia: str = "aleatorio", fraccion: float = 0.3,
                        recalcular: bool = True, semilla: int = 42) -> pd.DataFrame:
-        """
-        Elimina estaciones una a una y registra el tamaño de la componente gigante.
-        Estrategias: 'aleatorio' (fallo), 'grado' o 'intermediacion' (ataque dirigido).
-        Con recalcular=True la centralidad se vuelve a calcular tras cada eliminación.
-        """
+        """Quita estaciones una por una según la estrategia elegida."""
         H = self.G.copy()
         n = self.G.number_of_nodes()
         pasos = int(n * fraccion)

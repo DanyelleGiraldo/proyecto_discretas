@@ -30,7 +30,6 @@ def test_cartero_es_circuito_cerrado(cartero):
 def test_cartero_costo(G, cartero):
     assert cartero["costo_red_min"] == pytest.approx(G.size(weight="tiempo"), abs=0.01)
     assert cartero["costo_total_min"] == pytest.approx(cartero["costo_red_min"] + cartero["costo_extra_min"], abs=0.01)
-    # Emparejamiento perfecto: cada vértice impar aparece exactamente una vez
     impares = {n for n, d in G.degree() if d % 2}
     emparejados = [v for p in cartero["parejas"] for v in p]
     assert sorted(emparejados) == sorted(impares)
@@ -63,7 +62,6 @@ def test_expansion_reduccion_articulacion_coherente(G, expansion):
 
 
 def test_expansion_siempre_mejora_eficiencia(expansion):
-    # Agregar una arista nunca alarga un camino mínimo
     assert (expansion["ganancia_eficiencia_%"] >= 0).all()
 
 

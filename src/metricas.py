@@ -7,17 +7,14 @@ import pandas as pd
 
 
 class CalculadorMetricas:
-
     def __init__(self, G: nx.Graph):
         self.G = G
-
-    # ---------- Grados ----------
 
     def grados(self) -> pd.Series:
         return pd.Series(dict(self.G.degree()), name="grado").sort_values(ascending=False)
 
     def verificar_apreton_manos(self) -> Dict:
-        """Lema del apretón de manos: la suma de los grados es 2|E|."""
+        """Comprueba que la suma de los grados sea 2|E|."""
         suma = sum(d for _, d in self.G.degree())
         return {"suma_grados": suma, "2|E|": 2 * self.G.number_of_edges(),
                 "se_cumple": suma == 2 * self.G.number_of_edges()}
@@ -39,8 +36,6 @@ class CalculadorMetricas:
             "probabilidades": {int(k): round(conteo[k] / n, 4) for k in sorted(conteo)},
         }
 
-    # ---------- Centralidades ----------
-
     def centralidades(self) -> pd.DataFrame:
         G = self.G
         df = pd.DataFrame({
@@ -54,8 +49,6 @@ class CalculadorMetricas:
         df["num_lineas"] = [len(G.nodes[n]["lineas"]) for n in df.index]
         df.index.name = "estacion"
         return df.sort_values("intermediacion", ascending=False)
-
-    # ---------- Métricas globales ----------
 
     def metricas_globales(self) -> Dict:
         G = self.G
@@ -75,7 +68,7 @@ class CalculadorMetricas:
             "coeficiente_clustering": round(nx.average_clustering(G), 4),
             "eficiencia_global": round(nx.global_efficiency(G), 4),
             "componentes_conexas": c,
-            "numero_ciclomatico": m - n + c,     # ciclos independientes
+            "numero_ciclomatico": m - n + c,
             "es_arbol": nx.is_tree(G),
             "es_bipartito": nx.is_bipartite(G),
             "es_planar": nx.check_planarity(G)[0],
@@ -85,7 +78,7 @@ class CalculadorMetricas:
         return {"centro": nx.center(self.G), "periferia": nx.periphery(self.G)}
 
     def camino_diametral(self):
-        """Par de estaciones más alejadas (en paradas) y el camino entre ellas."""
+        """Devuelve las dos estaciones más alejadas y el camino entre ellas."""
         excentricidad = nx.eccentricity(self.G)
         d = max(excentricidad.values())
         u = next(n for n, e in excentricidad.items() if e == d)
@@ -93,10 +86,8 @@ class CalculadorMetricas:
         v = max(largos, key=largos.get)
         return u, v, nx.shortest_path(self.G, u, v)
 
-    # ---------- Euler y árbol de expansión ----------
-
     def analisis_euler(self) -> Dict:
-        """Un camino euleriano existe sii hay 0 o 2 vértices de grado impar (grafo conexo)."""
+        """Revisa si el grafo tiene camino o circuito euleriano."""
         impares = [n for n, d in self.G.degree() if d % 2 == 1]
         return {
             "vertices_grado_impar": len(impares),
@@ -105,7 +96,7 @@ class CalculadorMetricas:
         }
 
     def arbol_expansion_minima(self) -> Dict:
-        """Kruskal: conjunto mínimo de tramos (por tiempo) que mantiene todas las estaciones conectadas."""
+        """Calcula el árbol de expansión mínima con Kruskal."""
         T = nx.minimum_spanning_tree(self.G, weight="tiempo", algorithm="kruskal")
         total = self.G.size(weight="tiempo")
         mst = T.size(weight="tiempo")
@@ -118,14 +109,8 @@ class CalculadorMetricas:
             "porcentaje_redundancia": round((total - mst) / total * 100, 2),
         }
 
-    # ---------- Comunidades ----------
-
     def comunidades(self, semilla: int = 42) -> Dict:
-        """
-        Louvain: agrupa estaciones maximizando la modularidad
-        Q = (1/2m) * sum_ij [A_ij - k_i k_j / 2m] * delta(c_i, c_j),
-        es decir, más aristas dentro de cada grupo de las que habría al azar.
-        """
+        """Agrupa las estaciones en comunidades con Louvain."""
         grupos = nx.community.louvain_communities(self.G, seed=semilla)
         grupos = sorted(grupos, key=len, reverse=True)
         asignacion = {n: i for i, g in enumerate(grupos) for n in g}
@@ -137,10 +122,8 @@ class CalculadorMetricas:
             "asignacion": asignacion,
         }
 
-    # ---------- Ley de potencias (red libre de escala) ----------
-
     def ajuste_ley_potencias(self) -> Dict:
-        """Ajuste log-log de P(k) ~ k^-gamma sobre la distribución de grados."""
+        """Ajusta la distribución de grados a una ley de potencias."""
         dist = self.distribucion_grados()["probabilidades"]
         k = np.array([x for x in dist if x > 0], dtype=float)
         p = np.array([dist[int(x)] for x in k])

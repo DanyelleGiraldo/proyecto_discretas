@@ -14,7 +14,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 CARPETA_RESULTADOS = RAIZ / "resultados"
 CARPETA_RESULTADOS.mkdir(exist_ok=True)
 
-COLOR_RAMAL = "#1F3A93"  # el ramal es blanco en el plano oficial; se usa azul oscuro para que se vea
+COLOR_RAMAL = "#1F3A93"
 
 
 def colores_lineas(lineas: List[Linea]) -> Dict[str, str]:
@@ -29,19 +29,16 @@ def _guardar(fig, nombre: Optional[str]):
 
 
 class Visualizador:
-
     def __init__(self, G: nx.Graph, lineas: List[Linea]):
         self.G = G
         self.lineas = lineas
         self.colores = colores_lineas(lineas)
         self.pos = {n: (d["lon"], d["lat"]) for n, d in G.nodes(data=True)}
 
-    # ---------- Red completa ----------
-
     def red(self, ruta: List[str] = None, resaltar: Iterable[str] = None, eliminadas: Iterable[str] = None,
             titulo: str = "Red del Metro de Madrid", etiquetas: bool = False, archivo: str = None,
             zona: tuple = None):
-        """zona = (lon_min, lon_max, lat_min, lat_max) para ampliar una parte de la red."""
+        """Dibuja la red; con zona se puede ampliar una parte."""
         G = self.G
         fig, ax = plt.subplots(figsize=(13, 13))
         for linea in self.lineas:
@@ -102,11 +99,9 @@ class Visualizador:
         return fig
 
     def red_centro(self, archivo: str = None):
-        """Vista ampliada de la almendra central, donde se concentran los transbordos."""
+        """Dibuja el centro de Madrid ampliado."""
         return self.red(titulo="Centro de Madrid (vista ampliada)", etiquetas=True, archivo=archivo,
                         zona=(-3.728, -3.668, 40.400, 40.452))
-
-    # ---------- Métricas ----------
 
     def distribucion_grados(self, archivo: str = None):
         grados = [d for _, d in self.G.degree()]
@@ -163,8 +158,6 @@ class Visualizador:
         _guardar(fig, archivo)
         return fig
 
-    # ---------- Robustez ----------
-
     def curvas_robustez(self, resultados: Dict[str, pd.DataFrame], archivo: str = None):
         nombres = {"aleatorio": "Fallo aleatorio", "grado": "Ataque por grado",
                    "intermediacion": "Ataque por intermediación"}
@@ -183,8 +176,6 @@ class Visualizador:
         fig.tight_layout()
         _guardar(fig, archivo)
         return fig
-
-    # ---------- Algoritmos e IA ----------
 
     def comparar_algoritmos(self, df: pd.DataFrame, archivo: str = None):
         fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 4))
@@ -214,12 +205,9 @@ class Visualizador:
         _guardar(fig, archivo)
         return fig
 
-    # ---------- Interactivos ----------
-
     def mapa_folium(self, ruta: Dict = None, resaltar: Iterable[str] = None,
                     eliminadas: Iterable[str] = None, archivo: str = "mapa_metro.html") -> folium.Map:
         G = self.G
-        # openstreetmap.org bloquea los mosaicos al abrir el HTML como archivo local y CARTO exige clave: se usa Esri
         mapa = folium.Map(location=[40.43, -3.69], zoom_start=12, max_zoom=16,
                           tiles="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/"
                                 "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",

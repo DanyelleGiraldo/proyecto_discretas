@@ -35,7 +35,7 @@ def test_distribucion_grados_suma_uno(G, metricas):
 
 def test_euler_cuenta_impares(G, metricas):
     impares = sum(1 for _, d in G.degree() if d % 2)
-    assert impares % 2 == 0  # corolario del apretón de manos
+    assert impares % 2 == 0
     assert metricas.analisis_euler()["vertices_grado_impar"] == impares
 
 

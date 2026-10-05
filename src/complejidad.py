@@ -1,9 +1,3 @@
-"""
-Análisis empírico de complejidad: se generan redes sintéticas parecidas al metro (planas, dispersas,
-con coordenadas) de tamaño creciente y se mide el tiempo de BFS, Dijkstra y A* implementados en rutas.py.
-Teoría: BFS O(V + E); Dijkstra y A* O((V + E) log V). Como en estas redes E ≈ 1.15·V, se espera
-un crecimiento casi lineal.
-"""
 import math
 import random
 import time
@@ -18,11 +12,7 @@ from rutas import bfs, dijkstra
 
 
 def red_sintetica(n: int, semilla: int = 0) -> Tuple[Dict, Dict]:
-    """
-    Red conexa y dispersa: árbol de expansión mínima de la triangulación de Delaunay de puntos al azar
-    (como los ramales) más un 15% de aristas extra entre vecinos cercanos (como los ciclos del centro).
-    Peso = distancia euclidiana, así la heurística de A* (línea recta) es admisible.
-    """
+    """Crea una red aleatoria parecida al metro con n estaciones."""
     rng = np.random.default_rng(semilla)
     puntos = rng.random((n, 2)) * math.sqrt(n)
     D = nx.Graph()
@@ -46,7 +36,7 @@ def red_sintetica(n: int, semilla: int = 0) -> Tuple[Dict, Dict]:
 
 def medir(tamanos: List[int] = (250, 500, 1000, 2000, 4000, 8000, 16000), consultas: int = 60,
           repeticiones: int = 3, semilla: int = 1) -> pd.DataFrame:
-    """Tiempo medio por consulta; se toma la mejor de varias repeticiones para reducir el ruido del sistema."""
+    """Mide cuánto tarda cada algoritmo según el tamaño de la red."""
     filas = []
     for n in tamanos:
         adj, coords = red_sintetica(n, semilla)
@@ -78,7 +68,7 @@ def medir(tamanos: List[int] = (250, 500, 1000, 2000, 4000, 8000, 16000), consul
 
 
 def ajuste_pendiente(df: pd.DataFrame) -> pd.Series:
-    """Pendiente en escala log-log: ~1 significa crecimiento lineal."""
+    """Calcula la pendiente en escala log-log de cada algoritmo."""
     return df.groupby("algoritmo").apply(
         lambda g: np.polyfit(np.log(g["vertices"]), np.log(g["tiempo_ms"]), 1)[0], include_groups=False
     ).round(3)

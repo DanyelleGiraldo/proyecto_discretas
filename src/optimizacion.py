@@ -1,11 +1,3 @@
-"""
-Problemas de optimización combinatoria sobre la red:
-
-1. Problema del cartero chino: recorrido cerrado mínimo que pasa por TODOS los tramos
-   (p. ej. un tren de inspección de vías).
-2. Mejor tramo nuevo: qué conexión nueva mejora más la red (eficiencia y puntos únicos de fallo).
-3. Coloreo de vértices: turnos de mantenimiento sin cerrar dos estaciones vecinas la misma noche.
-"""
 from itertools import combinations
 from typing import Dict, List
 
@@ -19,13 +11,6 @@ from modelos import haversine_km, tiempo_tramo_min
 
 
 class CarteroChino:
-    """
-    Teorema de Euler: un grafo conexo tiene circuito euleriano sii todos sus vértices tienen grado par.
-    Si no, se duplican caminos entre los vértices de grado impar, emparejándolos de forma que la
-    suma de las distancias sea mínima (emparejamiento perfecto de peso mínimo). Así el grafo aumentado
-    es euleriano y el circuito resultante es el recorrido óptimo (algoritmo de Edmonds-Johnson).
-    """
-
     def __init__(self, G: nx.Graph, peso: str = "tiempo"):
         self.G = G
         self.peso = peso
@@ -34,14 +19,12 @@ class CarteroChino:
         G, peso = self.G, self.peso
         impares = [n for n, d in G.degree() if d % 2 == 1]
 
-        # Grafo completo entre vértices impares con la distancia mínima como peso
         distancias = {u: nx.single_source_dijkstra(G, u, weight=peso) for u in impares}
         K = nx.Graph()
         for u, v in combinations(impares, 2):
             K.add_edge(u, v, weight=distancias[u][0][v])
         emparejamiento = nx.min_weight_matching(K, weight="weight")
 
-        # Multigrafo aumentado: aristas originales + caminos duplicados
         M = nx.MultiGraph()
         M.add_nodes_from(G.nodes(data=True))
         for u, v, d in G.edges(data=True):
@@ -70,13 +53,6 @@ class CarteroChino:
 
 
 class PlanificadorExpansion:
-    """
-    Evalúa conexiones nuevas entre estaciones cercanas que hoy no están unidas.
-    Para cada candidata mide:
-      - ganancia de eficiencia global ponderada por tiempo: E = promedio de 1/d(u,v)
-      - reducción de puntos de articulación y puentes (puntos únicos de fallo)
-    """
-
     def __init__(self, G: nx.Graph, distancia_max_km: float = 2.0):
         self.G = G
         self.distancia_max_km = distancia_max_km
@@ -134,18 +110,11 @@ class PlanificadorExpansion:
                 "puentes_eliminados": base_puentes - len(list(nx.bridges(H))),
             })
         df = pd.DataFrame(filas)
-        # Ganancia por km construido: prioriza obras cortas con mucho impacto
         df["ganancia_por_km"] = (df["ganancia_eficiencia_%"] / df["distancia_km"]).round(3)
         return df.sort_values("ganancia_eficiencia_%", ascending=False).reset_index(drop=True)
 
 
 class ColoreoGrafo:
-    """
-    Coloreo propio de vértices: dos estaciones adyacentes nunca comparten color.
-    Aplicación: noches de mantenimiento en las que se cierran estaciones sin cerrar dos vecinas a la vez.
-    El número cromático cumple  omega(G) <= chi(G) <= Delta(G) + 1  (clique máxima; cota del algoritmo voraz).
-    """
-
     def __init__(self, G: nx.Graph):
         self.G = G
 
@@ -156,7 +125,6 @@ class ColoreoGrafo:
             "largest_first": "largest_first",
             "saturation_largest_first": "saturation_largest_first",
             "smallest_last": "smallest_last",
-            # con semilla fija para que el resultado sea reproducible
             "random_sequential": lambda H, c: nx.coloring.strategy_random_sequential(H, c, seed=42),
         }
         for nombre, estrategia in estrategias.items():
@@ -165,7 +133,6 @@ class ColoreoGrafo:
         mejor_estrategia = min(resultados, key=resultados.get)
         coloreo = nx.greedy_color(G, strategy=estrategias[mejor_estrategia])
 
-        # Clique máxima; entre las de igual tamaño se elige la primera en orden alfabético (resultado reproducible)
         cliques = [sorted(c) for c in nx.find_cliques(G)]
         tam = max(len(c) for c in cliques)
         clique = min(c for c in cliques if len(c) == tam)

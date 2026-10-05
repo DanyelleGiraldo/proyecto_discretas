@@ -1,13 +1,3 @@
-"""
-Componente de Inteligencia Artificial.
-
-1. A* (búsqueda informada) -> implementado en rutas.py.
-2. ModeloTiempoViaje: regresión (Lineal vs Bosque Aleatorio) que estima el tiempo de viaje
-   entre dos estaciones sin ejecutar la búsqueda en el grafo.
-3. ClasificadorCriticidad: Bosque Aleatorio que identifica estaciones críticas (alta
-   intermediación) con características baratas de calcular, O(V + E), en lugar de la
-   intermediación exacta, que cuesta O(V·E) (algoritmo de Brandes).
-"""
 from typing import Dict
 
 import networkx as nx
@@ -20,7 +10,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_predict, train_te
 
 from modelos import haversine_km
 
-ESTACION_CENTRO = "Sol"  # kilómetro cero de Madrid
+ESTACION_CENTRO = "Sol"
 
 
 def _distancia_centro(G: nx.Graph) -> Dict[str, float]:
@@ -29,10 +19,7 @@ def _distancia_centro(G: nx.Graph) -> Dict[str, float]:
 
 
 def tiempos_todos_pares(G: nx.Graph, GL: nx.Graph) -> Dict[str, Dict[str, float]]:
-    """
-    Tiempo mínimo (con transbordos) entre todos los pares de estaciones.
-    Para cada origen se lanza un Dijkstra multi-fuente desde todos sus vértices (estación, línea).
-    """
+    """Calcula el tiempo mínimo entre todos los pares de estaciones."""
     tiempos = {}
     servicios_en = GL.graph["servicios_en"]
     for origen in G.nodes:
@@ -47,7 +34,6 @@ def tiempos_todos_pares(G: nx.Graph, GL: nx.Graph) -> Dict[str, Dict[str, float]
 
 
 class ModeloTiempoViaje:
-
     def __init__(self, G: nx.Graph, GL: nx.Graph):
         self.G = G
         self.GL = GL
@@ -125,13 +111,6 @@ class ModeloTiempoViaje:
 
 
 class ClasificadorCriticidad:
-    """
-    Etiqueta 'crítica' = estación en el percentil superior de centralidad de intermediación.
-    El modelo aprende a reconocerlas con características baratas de calcular: locales (grado,
-    líneas, vecinos), geográficas (distancia al centro) y una estructural de costo O(V + E)
-    (punto de articulación, por DFS). Sirve para priorizar estaciones en redes grandes o modificadas.
-    """
-
     def __init__(self, G: nx.Graph, percentil: float = 0.85):
         self.G = G
         self.percentil = percentil

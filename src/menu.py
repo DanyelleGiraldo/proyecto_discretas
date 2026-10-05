@@ -1,10 +1,11 @@
 import difflib
+import shutil
 import unicodedata
 import webbrowser
 
 import matplotlib
 
-matplotlib.use("Agg")  # en consola las figuras se guardan en resultados/
+matplotlib.use("Agg")
 
 import pandas as pd
 
@@ -33,7 +34,6 @@ def titulo(texto: str):
 
 
 class ControladorSistema:
-
     def __init__(self):
         self.estaciones, self.lineas, self.conexiones = CargadorDatos.cargar()
         CargadorDatos.exportar_csv(self.estaciones, self.conexiones)
@@ -45,21 +45,92 @@ class ControladorSistema:
         self.visual = Visualizador(self.G, self.lineas)
         self.modelo_tiempo = None
         self._nombres = {_normalizar(n): n for n in self.G.nodes}
+        self._lista = sorted(self.G.nodes, key=_normalizar)
+        self._numero = {n: i for i, n in enumerate(self._lista, 1)}
+        self._lineas_por_codigo = {_normalizar(("L" if l.codigo != "R" else "") + l.codigo): l for l in self.lineas}
 
-    # ---------- Utilidades ----------
+    def instrucciones_estacion(self):
+        print("""
+   CÓMO ELEGIR UNA ESTACIÓN (escribe una de estas opciones y pulsa Enter):
+     • El NÚMERO de la estación en la lista ............ ej.  198
+     • El NOMBRE, con o sin tildes ni mayúsculas ....... ej.  plaza de castilla
+     • Una PARTE del nombre, si solo hay una estación .. ej.  bernab  (→ Santiago Bernabéu)
+     • L1 … L12 o R  → ver las estaciones de esa línea con su número
+     • ?             → volver a ver la lista completa de estaciones""")
+
+    def imprimir_lineas(self):
+        print("\n   LÍNEAS DISPONIBLES (escribe el código para ver sus estaciones):")
+        for l in self.lineas:
+            codigo = "R" if l.codigo == "R" else f"L{l.codigo}"
+            extremos = "circular" if l.circular else f"{l.estaciones[0]} ↔ {l.estaciones[-1]}"
+            print(f"     {codigo:<4} {len(l.estaciones):>3} estaciones   {extremos}")
+
+    def imprimir_estaciones(self):
+        ancho = max(len(n) for n in self._lista) + 8
+        columnas = max(1, min(4, (shutil.get_terminal_size((110, 30)).columns - 3) // ancho))
+        print(f"\n   ESTACIONES ({len(self._lista)}), en orden alfabético:")
+        filas = -(-len(self._lista) // columnas)
+        for f in range(filas):
+            celdas = []
+            for c in range(columnas):
+                i = c * filas + f
+                if i < len(self._lista):
+                    n = self._lista[i]
+                    marca = "*" if self.G.nodes[n]["transbordo"] else ""
+                    celdas.append(f"{i + 1:>3}. {n}{marca}".ljust(ancho))
+            print("   " + "".join(celdas).rstrip())
+        print("   (* = estación de transbordo)")
+
+    def imprimir_linea(self, linea):
+        codigo = "R" if linea.codigo == "R" else f"L{linea.codigo}"
+        tipo = " (circular)" if linea.circular else ""
+        print(f"\n   {codigo} · {linea.nombre}{tipo}, en orden de recorrido:")
+        for e in linea.estaciones:
+            otras = [x for x in self.G.nodes[e]["lineas"] if x != linea.codigo]
+            extra = f"  ↔ transbordo a {', '.join('R' if x == 'R' else 'L' + x for x in otras)}" if otras else ""
+            pasillos = [v for v in self.G.neighbors(e) if self.G[e][v].get("pasillo")]
+            extra += "".join(f"  ↔ pasillo a {v}" for v in pasillos)
+            print(f"     {self._numero[e]:>3}. {e}{extra}")
 
     def pedir_estacion(self, mensaje: str) -> str:
+        """Pide una estación por número, nombre o parte del nombre."""
         while True:
             texto = input(mensaje).strip()
             clave = _normalizar(texto)
+            if not clave:
+                print("   Escribe un número, un nombre, un código de línea (L1…L12, R) o ? para ver la lista.")
+                continue
+            if clave == "?":
+                self.imprimir_estaciones()
+                continue
+            if clave.replace(" ", "") in self._lineas_por_codigo:
+                self.imprimir_linea(self._lineas_por_codigo[clave.replace(" ", "")])
+                continue
+            if clave.isdigit():
+                n = int(clave)
+                if 1 <= n <= len(self._lista):
+                    print(f"   → {self._lista[n - 1]}")
+                    return self._lista[n - 1]
+                print(f"   El número debe estar entre 1 y {len(self._lista)}.")
+                continue
             if clave in self._nombres:
                 return self._nombres[clave]
-            parciales = [n for k, n in self._nombres.items() if clave and clave in k]
+            parciales = [n for k, n in self._nombres.items() if clave in k]
             if len(parciales) == 1:
+                print(f"   → {parciales[0]}")
                 return parciales[0]
-            sugerencias = parciales or [self._nombres[k] for k in
-                                        difflib.get_close_matches(clave, self._nombres, n=5, cutoff=0.5)]
-            print(f"   Estación no encontrada. ¿Quisiste decir: {', '.join(sugerencias) or '—'}?")
+            if parciales:
+                print("   Hay varias estaciones con ese texto; escribe el número:")
+                for n in sorted(parciales, key=_normalizar):
+                    print(f"     {self._numero[n]:>3}. {n}")
+                continue
+            sugerencias = [self._nombres[k] for k in difflib.get_close_matches(clave, self._nombres, n=5, cutoff=0.5)]
+            if sugerencias:
+                print("   Estación no encontrada. ¿Quisiste decir?")
+                for n in sugerencias:
+                    print(f"     {self._numero[n]:>3}. {n}")
+            else:
+                print("   Estación no encontrada. Escribe ? para ver la lista completa.")
 
     def abrir(self, archivo: str):
         ruta = CARPETA_RESULTADOS / archivo
@@ -80,8 +151,6 @@ class ControladorSistema:
         print(f"   Paradas: {ruta['paradas']} | Transbordos: {ruta['transbordos']} | "
               f"Distancia: {ruta['distancia_km']} km | Tiempo total: {ruta['tiempo_total_min']} min")
 
-    # ---------- Opciones ----------
-
     def estructura(self):
         titulo("1. ESTRUCTURA DEL GRAFO")
         for k, v in ConstructorGrafo.resumen(self.G).items():
@@ -101,24 +170,46 @@ class ControladorSistema:
 
     def ruta(self):
         titulo("2. RUTA MÁS CORTA ENTRE DOS ESTACIONES")
-        o = self.pedir_estacion("   Estación de origen: ")
-        d = self.pedir_estacion("   Estación de destino: ")
+        self.imprimir_lineas()
+        self.imprimir_estaciones()
+        self.instrucciones_estacion()
+        print()
+        o = self.pedir_estacion("   Estación de ORIGEN: ")
+        d = self.pedir_estacion("   Estación de DESTINO: ")
         if o == d:
             print(f"   Origen y destino son la misma estación ({o}): 0 paradas, 0 min.")
             return
 
-        print("\n   [A] Menor tiempo (Dijkstra sobre grafo de líneas, transbordo = 5 min)")
+        print(f"""
+   ¿QUÉ CRITERIO QUIERES USAR? (escribe el número y pulsa Enter)
+     1. Menor tiempo      → Dijkstra; incluye 5 min por transbordo
+     2. Menos transbordos → primero menos cambios de línea, luego menos tiempo
+     3. Menos paradas     → BFS; la ruta con menos estaciones intermedias
+     4. Comparar los tres (opción por defecto si solo pulsas Enter)""")
+        while True:
+            criterio = input("   Criterio [1-4]: ").strip() or "4"
+            if criterio in ("1", "2", "3", "4"):
+                break
+            print("   Opción no válida: escribe 1, 2, 3 o 4.")
+
+        print(f"\n   Ruta de {o} a {d}")
         rapida, _ = self.planificador.mas_rapida(o, d)
-        self.imprimir_ruta(rapida)
+        para_mapa = rapida
+        if criterio in ("1", "4"):
+            print("\n   [1] Menor tiempo (Dijkstra sobre el grafo de servicios)")
+            self.imprimir_ruta(rapida)
+        if criterio in ("2", "4"):
+            menos_t, _ = self.planificador.menos_transbordos(o, d)
+            print("\n   [2] Menos transbordos")
+            self.imprimir_ruta(menos_t)
+            if criterio == "2":
+                para_mapa = menos_t
+        if criterio in ("3", "4"):
+            camino, paradas, _ = self.planificador.menos_paradas(o, d)
+            print(f"\n   [3] Menos paradas (BFS): {paradas} paradas")
+            print("       " + " → ".join(camino))
 
-        print("\n   [B] Menos transbordos")
-        self.imprimir_ruta(self.planificador.menos_transbordos(o, d)[0])
-
-        camino, paradas, _ = self.planificador.menos_paradas(o, d)
-        print(f"\n   [C] Menos paradas (BFS): {paradas} paradas")
-        print("       " + " → ".join(camino))
-
-        self.visual.mapa_folium(ruta=rapida, archivo="mapa_ruta.html")
+        self.visual.mapa_folium(ruta=para_mapa, archivo="mapa_ruta.html")
         self.abrir("mapa_ruta.html")
 
     def comparar(self):

@@ -1,11 +1,3 @@
-"""
-Genera resultados/reporte.html: un reporte interactivo y autocontenido con todos los análisis.
-
-    python src/reporte.py
-
-Leaflet y Plotly quedan incrustados en el archivo, así que funciona sin internet
-(solo el fondo del mapa, los mosaicos de OpenStreetMap, necesita conexión).
-"""
 import json
 import time
 from datetime import date
@@ -56,7 +48,6 @@ def _log(msg):
 
 
 class GeneradorReporte:
-
     def __init__(self):
         self.estaciones, self.lineas, self.conexiones = CargadorDatos.cargar()
         self.G = ConstructorGrafo.grafo_estaciones(self.estaciones, self.conexiones)
@@ -67,9 +58,7 @@ class GeneradorReporte:
         self.colores = colores_lineas(self.lineas)
         self.graficos = {}
         self.tablas = {}
-        self.r = {}  # números que se citan en el texto
-
-    # ------------------------------------------------------------------ análisis
+        self.r = {}
 
     def analizar_estructura(self):
         G, r = self.G, self.r
@@ -116,7 +105,6 @@ class GeneradorReporte:
 
     def analizar_rutas(self):
         p, r = self.planificador, self.r
-        # Validación contra networkx en pares aleatorios
         rng = np.random.default_rng(7)
         nodos = list(self.G.nodes)
         N = 500
@@ -363,8 +351,6 @@ class GeneradorReporte:
         tabla.columns = [f"{c} (ms)" for c in tabla.columns]
         self.tablas["complejidad"] = _tabla(tabla)
 
-    # ------------------------------------------------------------------ datos para el navegador
-
     def datos_navegador(self) -> dict:
         G, df = self.G, self.centralidad
         ap = set(self.r["articulacion"])
@@ -412,8 +398,6 @@ class GeneradorReporte:
             "numComunidades": self.r["comunidades"]["numero"],
             "velocidad": VELOCIDAD_MEDIA_KMH,
         }
-
-    # ------------------------------------------------------------------ salida
 
     def generar(self, archivo: str = "reporte.html") -> Path:
         t0 = time.time()
