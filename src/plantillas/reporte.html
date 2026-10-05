@@ -29,6 +29,7 @@ header.hero { background: linear-gradient(135deg, #0F1E45 0%, #1D3A8A 55%, #2563
 .hero .etiqueta { opacity: .8; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; }
 .hero h1 { font-size: clamp(1.6rem, 3.6vw, 2.5rem); margin: .3em 0 .3em; max-width: 900px; }
 .hero p { opacity: .9; max-width: 820px; }
+.hero .integrantes { font-size: .9rem; opacity: .85; margin-top: -.3em; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 24px; }
 .kpi { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 12px 14px; }
 .kpi b { display: block; font-size: 1.6rem; line-height: 1.2; }
@@ -108,6 +109,7 @@ footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20
     <h1>Modelado y análisis de la red del Metro de Madrid mediante teoría de grafos</h1>
     <p>Las 13 líneas del metro como un grafo de {{ r.resumen.vertices }} estaciones: rutas óptimas, centralidad, robustez,
        optimización combinatoria e inteligencia artificial, implementados en Python.</p>
+    <p class="integrantes">Danyelle Steven Giraldo Jimenez (2250951) · Juan Andres Romero Sanchez (2253594) · Juan Diego Osorio Guerra (2252348)</p>
     <div class="kpis">
       <div class="kpi"><b>{{ r.resumen.vertices }}</b><span>estaciones (vértices)</span></div>
       <div class="kpi"><b>{{ r.resumen.aristas }}</b><span>conexiones (aristas)</span></div>

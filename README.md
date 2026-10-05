@@ -10,6 +10,14 @@ aleatorias, detección de comunidades, análisis empírico de complejidad e IA (
 **Resultado principal: `resultados/reporte.html`**, un reporte interactivo autocontenido que se genera con `python src/reporte.py`.
 Tiene un mapa de toda la red donde se calculan rutas en vivo, un simulador de cierre de estaciones y todos los análisis.
 
+## Integrantes
+
+| Nombre | Código |
+|---|---|
+| Danyelle Steven Giraldo Jimenez | 2250951 |
+| Juan Andres Romero Sanchez | 2253594 |
+| Juan Diego Osorio Guerra | 2252348 |
+
 ## Estructura
 
 ```
